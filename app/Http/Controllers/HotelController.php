@@ -57,8 +57,10 @@ class HotelController extends Controller
 
         if (!empty($validated['amenities'])) {
             foreach ($validated['amenities'] as $amenityId) {
-                // dodajemy udogodnienie z domyślną ceną 0  (właściciel edytuje to pozniej)
-                $hotel->amenities()->attach($amenityId, ['price' => 0]);
+                $price = $request->input('amenity_prices.' . $amenityId);
+                $price = $price !== null ? (float)$price : 0;
+
+                $hotel->amenities()->attach($amenityId, ['price' => $price]);
             }
         }
         return redirect()->route('hotels.index');

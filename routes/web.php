@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HotelController;
+use App\Http\Controllers\RoomController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -20,3 +21,9 @@ Route::post('/hotels', [HotelController::class, 'store'])->name('hotels.store');
 
 Route::get('/hotels/{hotel}', [HotelController::class, 'show'])->name('hotels.show');
 //
+
+//
+Route::get('/hotels/{hotel}/rooms/create', [RoomController::class, 'create'])->name('rooms.create');
+
+Route::post('/hotels/{hotel}/rooms', [RoomController::class, 'store'])->name('rooms.store');
+///

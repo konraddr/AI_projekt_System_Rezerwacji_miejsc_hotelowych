@@ -34,11 +34,17 @@
                                 <label class="form-label fw-bold">Zaznacz udogodnienia dostępne na start:</label><br>
                                 <div class="d-flex flex-wrap gap-3">
                                     @foreach($amenities as $amenity)
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="checkbox" name="amenities[]" value="{{ $amenity->id }}" id="amenity_{{ $amenity->id }}">
-                                            <label class="form-check-label" for="amenity_{{ $amenity->id }}">
+                                        <div class="form-check d-flex align-items-center w-100 mb-2">
+                                            <input class="form-check-input me-2" type="checkbox" name="amenities[]" value="{{ $amenity->id }}" id="amenity_{{ $amenity->id }}">
+
+                                            <label class="form-check-label flex-grow-1" for="amenity_{{ $amenity->id }}">
                                                 {{ $amenity->name }}
                                             </label>
+
+                                            <div class="input-group input-group-sm w-25">
+                                                <input type="number" name="amenity_prices[{{ $amenity->id }}]" class="form-control text-end" placeholder="0.00" min="0" step="0.01">
+                                                <span class="input-group-text">PLN</span>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>
