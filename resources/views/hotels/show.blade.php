@@ -29,6 +29,9 @@
                     <div class="card-header bg-white fw-bold fs-5 py-3">
                         Dostępne pokoje
                     </div>
+                    <div class="p-3 border-bottom text-center">
+                        <a href="{{ route('rooms.create', $hotel) }}" class="btn btn-success w-100"> Dodaj nowy pokój</a>
+                    </div>
                     <ul class="list-group list-group-flush">
                         @forelse($hotel->rooms as $room)
                             <li class="list-group-item py-3">

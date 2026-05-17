@@ -23,7 +23,8 @@ class RoomController extends Controller
     {
         //
         $amenities = $hotel->amenities;
-        return view('hotels.create', compact('hotel', 'amenities'));
+
+        return view('rooms.create', compact('hotel', 'amenities'));
     }
 
     /**
@@ -31,9 +32,9 @@ class RoomController extends Controller
      */
     public function store(Request $request, Hotel $hotel)
     {
-        //
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'description' => 'required|string',
             'capacity' => 'required|integer|min:1',
             'price_per_night' => 'required|numeric|min:0',
             'quantity' => 'required|integer|min:1',
@@ -42,6 +43,7 @@ class RoomController extends Controller
 
         $room = $hotel->rooms()->create([
             'name' => $validated['name'],
+            'description' => $validated['description'],
             'capacity' => $validated['capacity'],
             'price_per_night' => $validated['price_per_night'],
             'quantity' => $validated['quantity'],
@@ -53,7 +55,19 @@ class RoomController extends Controller
                 $price = $request->input('amenity_prices.' . $amenityId);
                 $price = $price !== null ? (float)$price : 0;
 
-                $room->amenities()->attach($amenityId, ['price' => $price]);
+
+                $hotelAmenity = \Illuminate\Support\Facades\DB::table('hotel_amenity')
+                    ->where('hotel_id', $hotel->id)
+                    ->where('amenity_id', $amenityId)
+                    ->first();
+
+                if ($hotelAmenity) {
+                    \Illuminate\Support\Facades\DB::table('room_amenities')->insert([
+                        'room_id' => $room->id,
+                        'hotel_amenity_id' => $hotelAmenity->id,
+                        'price' => $price
+                    ]);
+                }
             }
         }
 
