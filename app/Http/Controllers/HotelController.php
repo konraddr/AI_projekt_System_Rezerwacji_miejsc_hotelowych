@@ -12,7 +12,10 @@ class HotelController extends Controller
      */
     public function index()
     {
-        //
+        $hotels = Hotel::with('amenities')->get();
+
+
+        return view('hotels.index', compact('hotels'));
     }
 
     /**
