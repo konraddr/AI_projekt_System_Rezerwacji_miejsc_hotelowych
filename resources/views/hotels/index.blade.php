@@ -25,7 +25,7 @@
                             </ul>
                         </div>
                         <div class="card-footer bg-white border-top-0">
-                            <a href="#" class="btn btn-primary w-100">Zobacz szczegóły</a>
+                            <a href="{{ route('hotels.show', $hotel) }}" class="btn btn-primary w-100">Zobacz szczegóły</a>
                         </div>
                     </div>
                 </div>

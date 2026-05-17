@@ -24,6 +24,9 @@ class HotelController extends Controller
     public function create()
     {
         //
+        $amenities = \App\Models\Amenity::all();
+
+        return view('hotels.create', compact('amenities'));
     }
 
     /**
@@ -32,6 +35,35 @@ class HotelController extends Controller
     public function store(Request $request)
     {
         //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'city' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
+            'description' => 'required|string',
+            'amenities' => 'nullable|array',
+        ]);
+
+        $user = \App\Models\User::first();
+
+        $hotel = $user->hotels()->create([
+            'name' => $validated['name'],
+            'city' => $validated['city'],
+            'address' => $validated['address'],
+            'description' => $validated['description'],
+            // Współrzędne dla Polski (domyslnie )
+            'latitude' => 52.069,
+            'longitude' => 19.480,
+        ]);
+
+        if (!empty($validated['amenities'])) {
+            foreach ($validated['amenities'] as $amenityId) {
+                $price = $request->input('amenity_prices.' . $amenityId);
+                $price = $price !== null ? (float)$price : 0;
+
+                $hotel->amenities()->attach($amenityId, ['price' => $price]);
+            }
+        }
+        return redirect()->route('hotels.index');
     }
 
     /**
@@ -40,6 +72,9 @@ class HotelController extends Controller
     public function show(Hotel $hotel)
     {
         //
+        $hotel->load(['rooms', 'amenities']);
+
+        return view('hotels.show', compact('hotel'));
     }
 
     /**
