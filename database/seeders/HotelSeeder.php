@@ -16,9 +16,9 @@ class HotelSeeder extends Seeder
     public function run(): void
     {
         $amenities = [
-            ['name' => 'Darmowe Wi-Fi', 'icon' => 'wifi'],
+            ['name' => 'Wi-Fi', 'icon' => 'wifi'],
             ['name' => 'Basen', 'icon' => 'pool'],
-            ['name' => 'Darmowy Parking', 'icon' => 'parking'],
+            ['name' => 'Parking', 'icon' => 'parking'],
             ['name' => 'Klimatyzacja', 'icon' => 'ac'],
             ['name' => 'Strefa SPA', 'icon' => 'spa'],
         ];
