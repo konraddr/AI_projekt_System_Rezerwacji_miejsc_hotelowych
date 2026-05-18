@@ -71,7 +71,7 @@ Odpowiadasz za serce biznesowe aplikacji – transakcje, mechanizmy bezpieczeńs
   - Autoryzacja i logowanie (może być rozszerzony Laravel Breeze).
   - Uprawnienia i Role: Realizacja uprawnień za pomocą kolumny `permission` (wartości 0-6, gdzie np. 0 to Administrator, a 6 to całkowity BAN nałożony na użytkownika).
     -Zamrażanie Cen: Gdy klient rezerwuje pokój z płatnymi udogodnieniami dodatkowymi, ich dzisiejsza cena z momentu kliknięcia "Rezerwuj" musi zostać skopiowana do tabeli `extra_amenities`. Dzięki temu ewentualna przyszła zmiana cen w hotelu nie wpłynie na koszty już dokonanej rezerwacji klienta.
-  - utomatyczny Ban (Kary za brak wpłaty): Zastosowanie mechanizmu *Laravel Task Scheduling* (Cron Job), który cyklicznie skanuje bazę. Jeśli użytkownik ma rezerwację ze statusem "oczekuje na wpłatę" przez zbyt długi czas, system automatycznie anuluje rezerwację i zmienia jego `permission` na 6 (BAN).
+  - utomatyczny Ban (Kary za brak wpłaty): Zastosowanie mechanizmu , który cyklicznie skanuje bazę. Jeśli użytkownik ma rezerwację ze statusem "oczekuje na wpłatę" przez zbyt długi czas, system automatycznie anuluje rezerwację i zmienia jego `permission` na 6 (BAN).
   - Powiadomienia Push (Push Notifications): Zaimplementowanie wbudowanego systemu `Illuminate\Notifications`. Klient musi otrzymać powiadomienie wypychane (na ekranie lub mailowo), gdy status jego rezerwacji się zmieni lub gdy nadejdzie nowa wiadomość na czacie.
 
 
