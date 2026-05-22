@@ -13,13 +13,12 @@ return new class extends Migration
     {
         Schema::create('hotels', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('name');
             $table->text('description');
             $table->string('city');
             $table->string('address');
-            $table->decimal('latitude', 10, 7)->nullable(); // długość geograficzna
-            $table->decimal('longitude', 10, 7)->nullable(); // szerokość geograficzna
+            $table->decimal('latitude', 10, 7)->nullable();
+            $table->decimal('longitude', 10, 7)->nullable();
             $table->timestamps();
         });
     }
