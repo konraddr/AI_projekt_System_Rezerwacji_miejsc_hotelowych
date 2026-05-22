@@ -2,28 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class Room extends Model
+class HotelAmenity extends Pivot
 {
-    use HasFactory;
+    protected $table = 'hotel_amenity';
+
+    public $incrementing = true;
 
     protected $fillable = [
         'hotel_id',
-        'name',
-        'description',
-        'capacity',
-        'price_per_night',
-        'quantity',
+        'amenity_id',
+        'price',
     ];
 
     protected function casts(): array
     {
         return [
-            'price_per_night' => 'decimal:2',
+            'price' => 'decimal:2',
         ];
     }
 
@@ -32,8 +30,13 @@ class Room extends Model
         return $this->belongsTo(Hotel::class);
     }
 
+    public function amenity(): BelongsTo
+    {
+        return $this->belongsTo(Amenity::class);
+    }
+
     public function roomAmenities(): HasMany
     {
-        return $this->hasMany(RoomAmenity::class);
+        return $this->hasMany(RoomAmenity::class, 'hotel_amenity_id');
     }
 }

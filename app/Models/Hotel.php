@@ -4,11 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Hotel extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'name',
         'description',
@@ -26,13 +28,21 @@ class Hotel extends Model
         ];
     }
 
-    public function rooms()
+    public function rooms(): HasMany
     {
         return $this->hasMany(Room::class);
     }
-    public function amenities(){
+
+    public function hotelAmenities(): HasMany
+    {
+        return $this->hasMany(HotelAmenity::class);
+    }
+
+    public function amenities(): BelongsToMany
+    {
         return $this->belongsToMany(Amenity::class, 'hotel_amenity')
-            ->withPivot('id','price')
+            ->using(HotelAmenity::class)
+            ->withPivot('id', 'price')
             ->withTimestamps();
     }
 }
