@@ -47,12 +47,15 @@
                     <div class="card-body">
                         <h2 class="h5 fw-bold border-bottom pb-2 mb-3">Lokalizacja</h2>
                         @if ($hotel->latitude && $hotel->longitude)
-                            <div id="hotel-map-show" class="rounded border bg-light d-flex align-items-center justify-content-center"
-                                 style="height: 280px;"
+                            <div id="hotel-map-show"
+                                 class="rounded border overflow-hidden"
                                  data-lat="{{ $hotel->latitude }}"
-                                 data-lng="{{ $hotel->longitude }}">
-                                <span class="text-muted">Mapa Leaflet — Faza 4</span>
+                                 data-lng="{{ $hotel->longitude }}"
+                                 data-address="{{ $hotel->address }}, {{ $hotel->city }}">
                             </div>
+                            <p class="text-muted small mt-2 mb-0">
+                                Współrzędne: {{ $hotel->latitude }}, {{ $hotel->longitude }}
+                            </p>
                         @else
                             <div class="alert alert-warning mb-0">Hotel nie ma jeszcze zapisanych współrzędnych.</div>
                         @endif
@@ -123,3 +126,15 @@
         </div>
     </div>
 @endsection
+
+@if ($hotel->latitude && $hotel->longitude)
+    @push('styles')
+        @include('partials.leaflet-assets', ['includeJs' => false])
+        <link rel="stylesheet" href="{{ asset('css/hotel-map.css') }}">
+    @endpush
+
+    @push('scripts')
+        @include('partials.leaflet-assets', ['includeJs' => true])
+        <script src="{{ asset('js/hotel-map-show.js') }}"></script>
+    @endpush
+@endif
