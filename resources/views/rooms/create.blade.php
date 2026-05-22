@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="container mt-4">
-        <a href="{{ route('hotels.show', $hotel) }}" class="btn btn-outline-secondary mb-4"> Powrót do hotelu</a>
+        <a href="{{ route('manage.rooms.index', $hotel) }}" class="btn btn-outline-secondary mb-4"> Powrót do pokoi</a>
 
         <div class="row justify-content-center">
             <div class="col-md-8">
@@ -11,7 +11,7 @@
                         Dodaj nowy pokój do hotelu: {{ $hotel->name }}
                     </div>
                     <div class="card-body bg-light">
-                        <form action="{{ route('rooms.store', $hotel) }}" method="POST">
+                        <form action="{{ route('manage.rooms.store', $hotel) }}" method="POST">
                             @csrf
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Nazwa pokoju (np. Apartament Królewski)</label>

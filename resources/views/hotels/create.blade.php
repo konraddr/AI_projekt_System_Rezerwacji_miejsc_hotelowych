@@ -9,7 +9,7 @@
                         <h1>Dodaj nowy hotel do systemu</h1>
                     </div>
                     <div class="card-body bg-light">
-                        <form action="/hotels" method="POST">
+                        <form action="{{ route('manage.hotels.store') }}" method="POST">
                             @csrf
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Nazwa hotelu</label>

@@ -2,46 +2,52 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreHotelRequest;
+use App\Http\Requests\UpdateHotelRequest;
+use App\Models\Amenity;
 use App\Models\Hotel;
-use Illuminate\Http\Request;
+use App\Services\AmenityInheritanceService;
 
 class HotelController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct(
+        private readonly AmenityInheritanceService $amenityService
+    ) {}
+
     public function index()
     {
-        $hotels = Hotel::with('amenities')->get();
-
+        $hotels = Hotel::with('amenities')->latest()->paginate(12);
 
         return view('hotels.index', compact('hotels'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    public function show(Hotel $hotel)
+    {
+        $hotel->load([
+            'rooms.roomAmenities.hotelAmenity.amenity',
+            'amenities',
+        ]);
+
+        return view('hotels.show', compact('hotel'));
+    }
+
+    public function manage()
+    {
+        $hotels = Hotel::withCount(['rooms', 'amenities'])->latest()->get();
+
+        return view('hotels.manage.index', compact('hotels'));
+    }
+
     public function create()
     {
-        //
-        $amenities = \App\Models\Amenity::all();
+        $amenities = Amenity::orderBy('name')->get();
 
         return view('hotels.create', compact('amenities'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreHotelRequest $request)
     {
-        //
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'city' => 'required|string|max:255',
-            'address' => 'required|string|max:255',
-            'description' => 'required|string',
-            'amenities' => 'nullable|array',
-        ]);
+        $validated = $request->validated();
 
         $hotel = Hotel::create([
             'name' => $validated['name'],
@@ -52,49 +58,59 @@ class HotelController extends Controller
             'longitude' => $request->input('longitude', 19.480),
         ]);
 
-        if (!empty($validated['amenities'])) {
-            foreach ($validated['amenities'] as $amenityId) {
-                $price = $request->input('amenity_prices.' . $amenityId);
-                $price = $price !== null ? (float)$price : 0;
+        $amenityPrices = AmenityInheritanceService::parseAmenityPrices(
+            $validated['amenities'] ?? null,
+            $request->input('amenity_prices', [])
+        );
 
-                $hotel->amenities()->attach($amenityId, ['price' => $price]);
-            }
+        if ($amenityPrices !== []) {
+            $this->amenityService->syncHotelAmenities($hotel, $amenityPrices);
         }
-        return redirect()->route('hotels.index');
+
+        return redirect()
+            ->route('manage.hotels.index')
+            ->with('success', 'Hotel został dodany.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Hotel $hotel)
-    {
-        //
-        $hotel->load(['rooms', 'amenities']);
-
-        return view('hotels.show', compact('hotel'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Hotel $hotel)
     {
-        //
+        $hotel->load('amenities');
+        $amenities = Amenity::orderBy('name')->get();
+
+        return view('hotels.edit', compact('hotel', 'amenities'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Hotel $hotel)
+    public function update(UpdateHotelRequest $request, Hotel $hotel)
     {
-        //
+        $validated = $request->validated();
+
+        $hotel->update([
+            'name' => $validated['name'],
+            'city' => $validated['city'],
+            'address' => $validated['address'],
+            'description' => $validated['description'],
+            'latitude' => $request->input('latitude', $hotel->latitude),
+            'longitude' => $request->input('longitude', $hotel->longitude),
+        ]);
+
+        $amenityPrices = AmenityInheritanceService::parseAmenityPrices(
+            $validated['amenities'] ?? null,
+            $request->input('amenity_prices', [])
+        );
+
+        $this->amenityService->syncHotelAmenities($hotel, $amenityPrices);
+
+        return redirect()
+            ->route('manage.hotels.index')
+            ->with('success', 'Hotel został zaktualizowany.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Hotel $hotel)
     {
-        //
+        $hotel->delete();
+
+        return redirect()
+            ->route('manage.hotels.index')
+            ->with('success', 'Hotel został usunięty.');
     }
 }
