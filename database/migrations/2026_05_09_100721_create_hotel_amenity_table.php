@@ -17,6 +17,8 @@ return new class extends Migration
             $table->foreignId('amenity_id')->constrained('amenities')->onDelete('cascade');
             $table->decimal('price', 8, 2)->default(0);
             $table->timestamps();
+
+            $table->unique(['hotel_id', 'amenity_id']);
         });
     }
 
