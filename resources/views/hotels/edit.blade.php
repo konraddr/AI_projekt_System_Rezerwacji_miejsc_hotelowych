@@ -53,8 +53,10 @@
                             @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
-                        <input type="hidden" name="latitude" value="{{ old('latitude', $hotel->latitude) }}">
-                        <input type="hidden" name="longitude" value="{{ old('longitude', $hotel->longitude) }}">
+                        @include('partials.hotel-map-form', [
+                            'latitude' => old('latitude', $hotel->latitude ?? 52.069),
+                            'longitude' => old('longitude', $hotel->longitude ?? 19.480),
+                        ])
 
                         <div class="mb-4">
                             <label class="form-label fw-semibold">Udogodnienia hotelu</label>
@@ -81,3 +83,13 @@
         </div>
     </div>
 @endsection
+
+@push('styles')
+    @include('partials.leaflet-assets', ['includeJs' => false])
+    <link rel="stylesheet" href="{{ asset('css/hotel-map.css') }}">
+@endpush
+
+@push('scripts')
+    @include('partials.leaflet-assets', ['includeJs' => true])
+    <script src="{{ asset('js/hotel-map-form.js') }}"></script>
+@endpush
