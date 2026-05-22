@@ -29,4 +29,15 @@ class StoreHotelRequest extends FormRequest
             'amenity_prices.*' => ['nullable', 'numeric', 'min:0'],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'latitude.between' => 'Szerokość geograficzna musi być w zakresie od -90 do 90.',
+            'longitude.between' => 'Długość geograficzna musi być w zakresie od -180 do 180.',
+        ];
+    }
 }
