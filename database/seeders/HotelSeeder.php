@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Amenity;
 use App\Models\Hotel;
 use Illuminate\Database\Seeder;
 
@@ -12,7 +13,7 @@ class HotelSeeder extends Seeder
      */
     public function run(): void
     {
-        Hotel::factory()
+        $hotels = Hotel::factory()
             ->count(5)
             ->sequence(
                 ['city' => 'Kraków', 'latitude' => 50.0647, 'longitude' => 19.9450],
@@ -22,5 +23,23 @@ class HotelSeeder extends Seeder
                 ['city' => 'Wrocław', 'latitude' => 51.1079, 'longitude' => 17.0385],
             )
             ->create();
+
+        $amenities = Amenity::all();
+
+        if ($amenities->isEmpty()) {
+            return;
+        }
+
+        $hotels->each(function (Hotel $hotel) use ($amenities) {
+            $selectedAmenities = $amenities->random(
+                rand(2, min(5, $amenities->count()))
+            );
+
+            foreach ($selectedAmenities as $amenity) {
+                $hotel->amenities()->attach($amenity->id, [
+                    'price' => rand(0, 50),
+                ]);
+            }
+        });
     }
 }
