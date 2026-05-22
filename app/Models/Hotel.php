@@ -10,15 +10,20 @@ class Hotel extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'user_id', 'name', 'description', 'city', 'address', 'latitude', 'longitude',
-        'capacity',
-        'price_per_night',
-        'quantity'
+        'name',
+        'description',
+        'city',
+        'address',
+        'latitude',
+        'longitude',
     ];
 
-    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    protected function casts(): array
     {
-        return $this->belongsTo(User::class);
+        return [
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
+        ];
     }
 
     public function rooms()
