@@ -1,0 +1,13 @@
+.hotel-map-container {
+    height: 400px;
+    min-height: 280px;
+}
+
+#hotel-map-show {
+    height: 320px;
+    min-height: 240px;
+}
+
+.leaflet-container {
+    z-index: 0;
+}
