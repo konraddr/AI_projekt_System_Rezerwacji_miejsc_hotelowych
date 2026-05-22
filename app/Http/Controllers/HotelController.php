@@ -43,16 +43,13 @@ class HotelController extends Controller
             'amenities' => 'nullable|array',
         ]);
 
-        $user = \App\Models\User::first();
-
-        $hotel = $user->hotels()->create([
+        $hotel = Hotel::create([
             'name' => $validated['name'],
             'city' => $validated['city'],
             'address' => $validated['address'],
             'description' => $validated['description'],
-            // Współrzędne dla Polski (domyslnie )
-            'latitude' => 52.069,
-            'longitude' => 19.480,
+            'latitude' => $request->input('latitude', 52.069),
+            'longitude' => $request->input('longitude', 19.480),
         ]);
 
         if (!empty($validated['amenities'])) {
