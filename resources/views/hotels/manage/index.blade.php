@@ -1,48 +1,55 @@
-@extends('layouts.app')
+@extends('layouts.manage')
 
-@section('content')
-    <div class="container mt-4">
-        @if (session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
+@section('title', 'Zarządzanie hotelami')
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0">Zarządzanie hotelami</h1>
-            <a href="{{ route('manage.hotels.create') }}" class="btn btn-primary">Dodaj hotel</a>
+@section('manage-content')
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h1 class="h3 mb-1">Moje hotele</h1>
+            <p class="text-muted mb-0">Zarządzaj obiektami, pokojami i udogodnieniami.</p>
         </div>
+        <a href="{{ route('manage.hotels.create') }}" class="btn btn-primary">Dodaj hotel</a>
+    </div>
 
+    <div class="card border-0 shadow-sm">
         <div class="table-responsive">
-            <table class="table table-striped align-middle">
-                <thead>
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
                     <tr>
                         <th>Nazwa</th>
                         <th>Miasto</th>
-                        <th>Pokoje</th>
-                        <th>Udogodnienia</th>
+                        <th class="text-center">Pokoje</th>
+                        <th class="text-center">Udogodnienia</th>
                         <th class="text-end">Akcje</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($hotels as $hotel)
                         <tr>
-                            <td>{{ $hotel->name }}</td>
+                            <td class="fw-semibold">{{ $hotel->name }}</td>
                             <td>{{ $hotel->city }}</td>
-                            <td>{{ $hotel->rooms_count }}</td>
-                            <td>{{ $hotel->amenities_count }}</td>
+                            <td class="text-center">{{ $hotel->rooms_count }}</td>
+                            <td class="text-center">{{ $hotel->amenities_count }}</td>
                             <td class="text-end">
-                                <a href="{{ route('hotels.show', $hotel) }}" class="btn btn-sm btn-outline-secondary">Podgląd</a>
-                                <a href="{{ route('manage.rooms.index', $hotel) }}" class="btn btn-sm btn-outline-primary">Pokoje</a>
-                                <a href="{{ route('manage.hotels.edit', $hotel) }}" class="btn btn-sm btn-outline-warning">Edytuj</a>
-                                <form action="{{ route('manage.hotels.destroy', $hotel) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Usunąć hotel?')">Usuń</button>
-                                </form>
+                                <div class="d-inline-flex gap-1 flex-wrap justify-content-end">
+                                    <a href="{{ route('hotels.show', $hotel) }}" class="btn btn-sm btn-outline-secondary">Podgląd</a>
+                                    <a href="{{ route('manage.rooms.index', $hotel) }}" class="btn btn-sm btn-outline-primary">Pokoje</a>
+                                    <a href="{{ route('manage.hotels.edit', $hotel) }}" class="btn btn-sm btn-outline-warning">Edytuj</a>
+                                    @include('partials.delete-modal', [
+                                        'modalId' => 'deleteHotel'.$hotel->id,
+                                        'title' => 'Usuń hotel',
+                                        'message' => 'Czy na pewno chcesz usunąć hotel „'.$hotel->name.'”? Tej operacji nie można cofnąć.',
+                                        'action' => route('manage.hotels.destroy', $hotel),
+                                    ])
+                                </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-4">Brak hoteli. Dodaj pierwszy obiekt.</td>
+                            <td colspan="5" class="text-center text-muted py-5">
+                                <p class="mb-3">Nie masz jeszcze żadnych hoteli.</p>
+                                <a href="{{ route('manage.hotels.create') }}" class="btn btn-primary btn-sm">Dodaj pierwszy hotel</a>
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
