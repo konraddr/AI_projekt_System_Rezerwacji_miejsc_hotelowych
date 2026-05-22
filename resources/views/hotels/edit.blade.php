@@ -1,69 +1,81 @@
-@extends('layouts.app')
+@extends('layouts.manage')
 
-@section('content')
-    <div class="container mt-4">
-        <a href="{{ route('manage.hotels.index') }}" class="btn btn-outline-secondary mb-4">Powrót do listy hoteli</a>
+@section('title', 'Edytuj hotel')
 
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-warning text-dark fs-5">
-                        Edytuj hotel: {{ $hotel->name }}
-                    </div>
-                    <div class="card-body bg-light">
-                        <form action="{{ route('manage.hotels.update', $hotel) }}" method="POST">
-                            @csrf
-                            @method('PUT')
+@section('manage-content')
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('manage.hotels.index') }}">Hotele</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ $hotel->name }}</li>
+        </ol>
+    </nav>
 
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Nazwa hotelu</label>
-                                <input type="text" name="name" class="form-control" value="{{ old('name', $hotel->name) }}" required>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-warning">
+                    <h1 class="h4 mb-0">Edytuj hotel: {{ $hotel->name }}</h1>
+                </div>
+                <div class="card-body">
+                    <form action="{{ route('manage.hotels.update', $hotel) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="name">Nazwa hotelu</label>
+                            <input type="text" name="name" id="name"
+                                   class="form-control @error('name') is-invalid @enderror"
+                                   value="{{ old('name', $hotel->name) }}" required>
+                            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="city">Miasto</label>
+                                <input type="text" name="city" id="city"
+                                       class="form-control @error('city') is-invalid @enderror"
+                                       value="{{ old('city', $hotel->city) }}" required>
+                                @error('city')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Miasto</label>
-                                    <input type="text" name="city" class="form-control" value="{{ old('city', $hotel->city) }}" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Adres</label>
-                                    <input type="text" name="address" class="form-control" value="{{ old('address', $hotel->address) }}" required>
-                                </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" for="address">Adres</label>
+                                <input type="text" name="address" id="address"
+                                       class="form-control @error('address') is-invalid @enderror"
+                                       value="{{ old('address', $hotel->address) }}" required>
+                                @error('address')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
+                        </div>
 
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Opis</label>
-                                <textarea name="description" class="form-control" rows="4" required>{{ old('description', $hotel->description) }}</textarea>
-                            </div>
+                        <div class="mb-3 mt-3">
+                            <label class="form-label fw-semibold" for="description">Opis</label>
+                            <textarea name="description" id="description" rows="4"
+                                      class="form-control @error('description') is-invalid @enderror" required>{{ old('description', $hotel->description) }}</textarea>
+                            @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
 
-                            <input type="hidden" name="latitude" value="{{ old('latitude', $hotel->latitude) }}">
-                            <input type="hidden" name="longitude" value="{{ old('longitude', $hotel->longitude) }}">
+                        <input type="hidden" name="latitude" value="{{ old('latitude', $hotel->latitude) }}">
+                        <input type="hidden" name="longitude" value="{{ old('longitude', $hotel->longitude) }}">
 
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">Udogodnienia hotelu</label>
-                                @php
-                                    $selectedAmenities = old('amenities', $hotel->amenities->pluck('id')->all());
-                                @endphp
-                                @foreach ($amenities as $amenity)
-                                    @php
-                                        $pivot = $hotel->amenities->firstWhere('id', $amenity->id)?->pivot;
-                                    @endphp
-                                    <div class="form-check d-flex align-items-center w-100 mb-2">
-                                        <input class="form-check-input me-2" type="checkbox" name="amenities[]" value="{{ $amenity->id }}" id="amenity_{{ $amenity->id }}"
-                                            @checked(in_array($amenity->id, $selectedAmenities))>
-                                        <label class="form-check-label flex-grow-1" for="amenity_{{ $amenity->id }}">{{ $amenity->name }}</label>
-                                        <div class="input-group input-group-sm w-25">
-                                            <input type="number" name="amenity_prices[{{ $amenity->id }}]" class="form-control text-end"
-                                                value="{{ old('amenity_prices.'.$amenity->id, $pivot?->price ?? 0) }}" min="0" step="0.01">
-                                            <span class="input-group-text">PLN</span>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Udogodnienia hotelu</label>
+                            @php
+                                $selectedAmenities = old('amenities', $hotel->amenities->pluck('id')->all());
+                                $amenityPrices = old('amenity_prices', $hotel->amenities->mapWithKeys(
+                                    fn ($amenity) => [$amenity->id => $amenity->pivot->price]
+                                )->all());
+                            @endphp
+                            @include('partials.amenities-selector', [
+                                'amenities' => $amenities,
+                                'selectedAmenities' => $selectedAmenities,
+                                'amenityPrices' => $amenityPrices,
+                            ])
+                        </div>
 
-                            <button type="submit" class="btn btn-warning w-100">Zapisz zmiany</button>
-                        </form>
-                    </div>
+                        <div class="d-grid gap-2 d-md-flex">
+                            <button type="submit" class="btn btn-warning">Zapisz zmiany</button>
+                            <a href="{{ route('manage.hotels.index') }}" class="btn btn-outline-secondary">Anuluj</a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

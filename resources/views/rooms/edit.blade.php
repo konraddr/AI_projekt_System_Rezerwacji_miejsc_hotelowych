@@ -1,73 +1,91 @@
-@extends('layouts.app')
+@extends('layouts.manage')
 
-@section('content')
-    <div class="container mt-4">
-        <a href="{{ route('manage.rooms.index', $hotel) }}" class="btn btn-outline-secondary mb-4">Powrót do listy pokoi</a>
+@section('title', 'Edytuj pokój')
 
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-warning text-dark fs-5">
-                        Edytuj pokój: {{ $room->name }}
-                    </div>
-                    <div class="card-body bg-light">
-                        <form action="{{ route('manage.rooms.update', [$hotel, $room]) }}" method="POST">
-                            @csrf
-                            @method('PUT')
+@section('manage-content')
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('manage.hotels.index') }}">Hotele</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('manage.rooms.index', $hotel) }}">{{ $hotel->name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ $room->name }}</li>
+        </ol>
+    </nav>
 
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Nazwa pokoju</label>
-                                <input type="text" name="name" class="form-control" value="{{ old('name', $room->name) }}" required>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-warning">
+                    <h1 class="h4 mb-0">Edytuj pokój: {{ $room->name }}</h1>
+                </div>
+                <div class="card-body">
+                    <form action="{{ route('manage.rooms.update', [$hotel, $room]) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="name">Nazwa pokoju</label>
+                            <input type="text" name="name" id="name"
+                                   class="form-control @error('name') is-invalid @enderror"
+                                   value="{{ old('name', $room->name) }}" required>
+                            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="description">Opis pokoju</label>
+                            <textarea name="description" id="description" rows="3"
+                                      class="form-control @error('description') is-invalid @enderror" required>{{ old('description', $room->description) }}</textarea>
+                            @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold" for="capacity">Pojemność</label>
+                                <input type="number" name="capacity" id="capacity" min="1"
+                                       class="form-control @error('capacity') is-invalid @enderror"
+                                       value="{{ old('capacity', $room->capacity) }}" required>
+                                @error('capacity')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
-
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Opis pokoju</label>
-                                <textarea name="description" class="form-control" rows="3" required>{{ old('description', $room->description) }}</textarea>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold" for="price_per_night">Cena / noc (PLN)</label>
+                                <input type="number" name="price_per_night" id="price_per_night" min="0" step="0.01"
+                                       class="form-control @error('price_per_night') is-invalid @enderror"
+                                       value="{{ old('price_per_night', $room->price_per_night) }}" required>
+                                @error('price_per_night')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
-
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label fw-bold">Pojemność</label>
-                                    <input type="number" name="capacity" class="form-control" min="1" value="{{ old('capacity', $room->capacity) }}" required>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label fw-bold">Cena za noc (PLN)</label>
-                                    <input type="number" name="price_per_night" class="form-control" min="0" step="0.01" value="{{ old('price_per_night', $room->price_per_night) }}" required>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label fw-bold">Ilość pokoi</label>
-                                    <input type="number" name="quantity" class="form-control" min="1" value="{{ old('quantity', $room->quantity) }}" required>
-                                </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold" for="quantity">Ilość pokoi</label>
+                                <input type="number" name="quantity" id="quantity" min="1"
+                                       class="form-control @error('quantity') is-invalid @enderror"
+                                       value="{{ old('quantity', $room->quantity) }}" required>
+                                @error('quantity')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
+                        </div>
 
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">Udogodnienia pokoju</label>
-                                @php
-                                    $selectedAmenities = old('amenities', $room->roomAmenities
-                                        ->map(fn ($item) => $item->hotelAmenity?->amenity_id)
-                                        ->filter()
-                                        ->all());
-                                @endphp
-                                @foreach ($amenities as $amenity)
-                                    @php
-                                        $roomAmenity = $room->roomAmenities->first(fn ($item) => $item->hotelAmenity?->amenity_id === $amenity->id);
-                                    @endphp
-                                    <div class="form-check d-flex align-items-center w-100 mb-2">
-                                        <input class="form-check-input me-2" type="checkbox" name="amenities[]" value="{{ $amenity->id }}" id="amenity_{{ $amenity->id }}"
-                                            @checked(in_array($amenity->id, $selectedAmenities))>
-                                        <label class="form-check-label flex-grow-1" for="amenity_{{ $amenity->id }}">{{ $amenity->name }}</label>
-                                        <div class="input-group input-group-sm w-25">
-                                            <input type="number" name="amenity_prices[{{ $amenity->id }}]" class="form-control text-end"
-                                                value="{{ old('amenity_prices.'.$amenity->id, $roomAmenity?->price ?? 0) }}" min="0" step="0.01">
-                                            <span class="input-group-text">PLN</span>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Udogodnienia pokoju</label>
+                            @php
+                                $selectedAmenities = old('amenities', $room->roomAmenities
+                                    ->map(fn ($item) => $item->hotelAmenity?->amenity_id)
+                                    ->filter()
+                                    ->all());
+                                $amenityPrices = old('amenity_prices', $room->roomAmenities
+                                    ->filter(fn ($item) => $item->hotelAmenity?->amenity_id)
+                                    ->mapWithKeys(fn ($item) => [
+                                        $item->hotelAmenity->amenity_id => $item->price,
+                                    ])->all());
+                            @endphp
+                            @include('partials.amenities-selector', [
+                                'amenities' => $amenities,
+                                'selectedAmenities' => $selectedAmenities,
+                                'amenityPrices' => $amenityPrices,
+                            ])
+                        </div>
 
-                            <button type="submit" class="btn btn-warning w-100">Zapisz zmiany</button>
-                        </form>
-                    </div>
+                        <div class="d-grid gap-2 d-md-flex">
+                            <button type="submit" class="btn btn-warning">Zapisz zmiany</button>
+                            <a href="{{ route('manage.rooms.index', $hotel) }}" class="btn btn-outline-secondary">Anuluj</a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
