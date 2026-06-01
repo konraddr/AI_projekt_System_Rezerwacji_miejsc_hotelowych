@@ -43,6 +43,7 @@
                             <td class="text-center">{{ $room->quantity }}</td>
                             <td class="text-end">
                                 <div class="d-inline-flex gap-1 flex-wrap justify-content-end">
+                                    @include('partials.room-manage-photos-link', ['hotel' => $hotel, 'room' => $room])
                                     <a href="{{ route('manage.rooms.edit', [$hotel, $room]) }}" class="btn btn-sm btn-outline-warning">Edytuj</a>
                                     @include('partials.delete-modal', [
                                         'modalId' => 'deleteRoom'.$room->id,
