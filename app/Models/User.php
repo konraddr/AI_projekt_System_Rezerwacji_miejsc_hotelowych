@@ -3,27 +3,44 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserPermission;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'last_name', 'email', 'phone', 'password', 'permission'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
-    public function hotels()
-    {
-        return $this->hasMany(Hotel::class);
-    }
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    public function workerHotels(): BelongsToMany
+    {
+        return $this->belongsToMany(Hotel::class, 'workers', 'worker_id', 'hotel_id');
+    }
+
+    public function hasPermission(UserPermission ...$permissions): bool
+    {
+        return in_array($this->permission, $permissions, true);
+    }
+
+    public function isBanned(): bool
+    {
+        return $this->permission->isBanned();
+    }
+
     /**
-     * Get the attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array
@@ -31,6 +48,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'permission' => UserPermission::class,
         ];
     }
 }
