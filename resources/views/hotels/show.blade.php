@@ -27,6 +27,8 @@
 
                 @include('partials.hotel-public-photo-gallery')
 
+                @include('partials.hotel-reviews-public')
+
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-body">
                         <h2 class="h5 fw-bold border-bottom pb-2 mb-3">Udogodnienia obiektu</h2>

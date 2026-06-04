@@ -76,7 +76,7 @@ class HotelPhotoController extends Controller
     private function ensurePhotoBelongsToHotel(Hotel $hotel, Photo $photo): void
     {
         abort_if(
-            $photo->imageable_type !== $hotel->getMorphClass() || $photo->imageable_id !== $hotel->id,
+            ! $photo->imageable()->is($hotel),
             404
         );
     }

@@ -83,7 +83,7 @@
                     </div>
                     <div class="col-12 col-md-2 text-md-end">
                         @include('partials.delete-modal', [
-                            'modalId' => 'deletePhoto'.$photo->id,
+                            'modalId' => 'deletePhotoModal'.$loop->index,
                             'title' => 'Usuń zdjęcie',
                             'message' => 'Czy na pewno chcesz usunąć to zdjęcie?',
                             'action' => route('manage.hotels.photos.destroy', [$hotel, $photo]),
