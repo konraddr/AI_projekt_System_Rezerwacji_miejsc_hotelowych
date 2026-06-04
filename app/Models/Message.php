@@ -39,4 +39,12 @@ class Message extends Model
     {
         return $this->belongsTo(Hotel::class);
     }
+
+    public function scopeForParticipant($query, int $userId)
+    {
+        return $query->where(function ($query) use ($userId) {
+            $query->where('sender_id', $userId)
+                ->orWhere('receiver_id', $userId);
+        });
+    }
 }
