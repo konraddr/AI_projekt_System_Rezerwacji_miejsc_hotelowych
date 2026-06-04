@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminReportController;
 use App\Http\Controllers\AdminReviewController;
 use App\Http\Controllers\HotelPhotoController;
 use App\Http\Controllers\ReportController;
@@ -39,4 +40,7 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
     Route::patch('/reviews/{review}/ban', [AdminReviewController::class, 'ban'])->name('reviews.ban');
     Route::patch('/reviews/{review}/unban', [AdminReviewController::class, 'unban'])->name('reviews.unban');
+
+    Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
+    Route::patch('/reports/{report}/status', [AdminReportController::class, 'updateStatus'])->name('reports.update-status');
 });

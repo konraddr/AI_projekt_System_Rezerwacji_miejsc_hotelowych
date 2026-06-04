@@ -21,4 +21,9 @@ class ReportPolicy
     {
         return true;
     }
+
+    public function moderate(User $user, ?Report $report = null): bool
+    {
+        return in_array($user->email, config('maciej.admin_emails', []), true);
+    }
 }

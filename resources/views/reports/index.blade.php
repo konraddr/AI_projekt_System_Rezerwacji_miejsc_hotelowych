@@ -12,7 +12,8 @@
             <div class="d-flex flex-wrap gap-2">
                 <a href="{{ route('manage.reports.create') }}" class="btn btn-primary">Nowe zgłoszenie</a>
                 @if (in_array(auth()->user()->email, config('maciej.admin_emails', []), true))
-                    <a href="{{ route('manage.admin.reviews.index') }}" class="btn btn-outline-danger">Moderacja opinii</a>
+                    <a href="{{ route('manage.admin.reports.index') }}" class="btn btn-outline-danger">Panel zgłoszeń</a>
+                    <a href="{{ route('manage.admin.reviews.index') }}" class="btn btn-outline-secondary">Moderacja opinii</a>
                 @endif
             </div>
         </div>
