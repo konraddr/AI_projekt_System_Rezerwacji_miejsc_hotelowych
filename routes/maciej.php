@@ -32,6 +32,7 @@ Route::get('/hotels/{hotel}/reviews/{review}/edit', [ReviewController::class, 'e
 Route::put('/hotels/{hotel}/reviews/{review}', [ReviewController::class, 'update'])->name('hotels.reviews.update');
 Route::delete('/hotels/{hotel}/reviews/{review}', [ReviewController::class, 'destroy'])->name('hotels.reviews.destroy');
 
+Route::get('/hotels/{hotel}/chat', [MessageController::class, 'chat'])->name('hotels.chat');
 Route::get('/hotels/{hotel}/messages', [MessageController::class, 'index'])->name('hotels.messages.index');
 Route::post('/hotels/{hotel}/messages', [MessageController::class, 'store'])->name('hotels.messages.store');
 

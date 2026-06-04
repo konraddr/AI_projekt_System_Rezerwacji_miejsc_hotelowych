@@ -36,7 +36,10 @@
         @endforelse
 
         @auth
-            <div class="mt-3 pt-3 border-top">
+            <div class="mt-3 pt-3 border-top d-flex flex-wrap gap-2">
+                <a href="{{ route('manage.hotels.chat', $hotel) }}" class="btn btn-sm btn-outline-primary">
+                    Czat z hotelem
+                </a>
                 <a href="{{ route('manage.reports.create', ['prefill' => 'Hotel: '.$hotel->name.' ('.$hotel->city.')']) }}"
                    class="btn btn-sm btn-outline-secondary">Zgłoś problem z tym hotelem</a>
             </div>
