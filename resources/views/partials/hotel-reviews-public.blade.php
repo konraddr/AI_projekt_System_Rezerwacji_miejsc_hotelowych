@@ -34,5 +34,12 @@
         @empty
             <p class="text-muted mb-0">Brak opinii. Bądź pierwszą osobą, która oceni ten obiekt.</p>
         @endforelse
+
+        @auth
+            <div class="mt-3 pt-3 border-top">
+                <a href="{{ route('manage.reports.create', ['prefill' => 'Hotel: '.$hotel->name.' ('.$hotel->city.')']) }}"
+                   class="btn btn-sm btn-outline-secondary">Zgłoś problem z tym hotelem</a>
+            </div>
+        @endauth
     </div>
 </div>

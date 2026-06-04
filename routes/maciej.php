@@ -2,14 +2,17 @@
 
 use App\Http\Controllers\AdminReviewController;
 use App\Http\Controllers\HotelPhotoController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\RoomPhotoController;
 use App\Models\Photo;
+use App\Models\Report;
 use App\Models\Review;
 use Illuminate\Support\Facades\Route;
 
 Route::bind('photo', fn (string $value) => Photo::query()->whereKey($value)->firstOrFail());
 Route::bind('review', fn (string $value) => Review::query()->whereKey($value)->firstOrFail());
+Route::bind('report', fn (string $value) => Report::query()->whereKey($value)->firstOrFail());
 
 Route::get('/hotels/{hotel}/photos', [HotelPhotoController::class, 'index'])->name('hotels.photos.index');
 Route::post('/hotels/{hotel}/photos', [HotelPhotoController::class, 'store'])->name('hotels.photos.store');
@@ -26,6 +29,11 @@ Route::post('/hotels/{hotel}/reviews', [ReviewController::class, 'store'])->name
 Route::get('/hotels/{hotel}/reviews/{review}/edit', [ReviewController::class, 'edit'])->name('hotels.reviews.edit');
 Route::put('/hotels/{hotel}/reviews/{review}', [ReviewController::class, 'update'])->name('hotels.reviews.update');
 Route::delete('/hotels/{hotel}/reviews/{review}', [ReviewController::class, 'destroy'])->name('hotels.reviews.destroy');
+
+Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
+Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
+Route::get('/reports/{report}', [ReportController::class, 'show'])->name('reports.show');
 
 Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');

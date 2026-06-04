@@ -8,6 +8,7 @@
             <h1 class="h3 mb-1">Moderacja opinii</h1>
             <p class="text-muted mb-0">Ukrywaj lub przywracaj komentarze (flaga is_banned).</p>
         </div>
+        <a href="{{ route('manage.reports.index') }}" class="btn btn-outline-secondary">Moje zgłoszenia</a>
     </div>
 
     <div class="btn-group mb-4" role="group">
