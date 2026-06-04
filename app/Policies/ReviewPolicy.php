@@ -32,7 +32,7 @@ class ReviewPolicy
         return $user->id === $review->user_id;
     }
 
-    public function moderate(User $user): bool
+    public function moderate(User $user, ?Review $review = null): bool
     {
         return in_array($user->email, config('maciej.admin_emails', []), true);
     }

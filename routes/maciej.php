@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminReviewController;
 use App\Http\Controllers\HotelPhotoController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\RoomPhotoController;
@@ -25,3 +26,9 @@ Route::post('/hotels/{hotel}/reviews', [ReviewController::class, 'store'])->name
 Route::get('/hotels/{hotel}/reviews/{review}/edit', [ReviewController::class, 'edit'])->name('hotels.reviews.edit');
 Route::put('/hotels/{hotel}/reviews/{review}', [ReviewController::class, 'update'])->name('hotels.reviews.update');
 Route::delete('/hotels/{hotel}/reviews/{review}', [ReviewController::class, 'destroy'])->name('hotels.reviews.destroy');
+
+Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
+    Route::patch('/reviews/{review}/ban', [AdminReviewController::class, 'ban'])->name('reviews.ban');
+    Route::patch('/reviews/{review}/unban', [AdminReviewController::class, 'unban'])->name('reviews.unban');
+});
