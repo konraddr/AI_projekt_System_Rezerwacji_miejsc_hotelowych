@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\BookingActionException;
 use App\Exceptions\RoomNotAvailableException;
 use App\Http\Requests\StoreBookingRequest;
 use App\Models\Booking;
@@ -27,7 +28,8 @@ class BookingController extends Controller
             ->bookings()
             ->with(['room.hotel', 'extraAmenities.hotelAmenity.amenity'])
             ->latest()
-            ->get();
+            ->get()
+            ->each(fn (Booking $booking) => $this->bookingService->completeIfStayEnded($booking));
 
         return view('bookings.index', compact('bookings'));
     }
@@ -82,13 +84,61 @@ class BookingController extends Controller
 
     public function show(Booking $booking): View
     {
-        abort_unless($booking->user_id === auth()->id(), 403);
+        $this->authorizeBooking($booking);
 
         $booking->load([
             'room.hotel',
             'extraAmenities.hotelAmenity.amenity',
         ]);
 
+        $this->bookingService->completeIfStayEnded($booking);
+
         return view('bookings.show', compact('booking'));
+    }
+
+    public function pay(Booking $booking): RedirectResponse
+    {
+        $this->authorizeBooking($booking);
+
+        try {
+            $this->bookingService->simulatePayment($booking);
+        } catch (BookingActionException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return back()->with('success', 'Płatność została zaksięgowana.');
+    }
+
+    public function failPayment(Booking $booking): RedirectResponse
+    {
+        $this->authorizeBooking($booking);
+
+        try {
+            $this->bookingService->simulatePaymentFailure($booking);
+        } catch (BookingActionException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return back()->with('error', 'Symulacja: płatność nie powiodła się.');
+    }
+
+    public function cancel(Booking $booking): RedirectResponse
+    {
+        $this->authorizeBooking($booking);
+
+        try {
+            $this->bookingService->cancelBooking($booking);
+        } catch (BookingActionException $exception) {
+            return back()->with('error', $exception->getMessage());
+        }
+
+        return redirect()
+            ->route('bookings.index')
+            ->with('success', 'Rezerwacja została anulowana.');
+    }
+
+    private function authorizeBooking(Booking $booking): void
+    {
+        abort_unless($booking->user_id === auth()->id(), 403);
     }
 }

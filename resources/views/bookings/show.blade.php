@@ -44,11 +44,11 @@
                             </div>
                             <div class="col-md-6">
                                 <p class="text-muted small mb-1">Status rezerwacji</p>
-                                <p class="fw-semibold mb-0 text-capitalize">{{ $booking->status->value }}</p>
+                                <p class="fw-semibold mb-0">{{ $booking->status->label() }}</p>
                             </div>
                             <div class="col-md-6">
                                 <p class="text-muted small mb-1">Status płatności</p>
-                                <p class="fw-semibold mb-0 text-capitalize">{{ $booking->payment_status->value }}</p>
+                                <p class="fw-semibold mb-0">{{ $booking->payment_status->label() }}</p>
                             </div>
                         </div>
 
@@ -71,12 +71,38 @@
                             <span class="fs-5 fw-bold text-primary">{{ number_format($booking->total_price, 2) }} PLN</span>
                         </div>
 
-                        <p class="text-muted small mt-3 mb-0">
-                            Płatność zostanie obsłużona w kolejnym etapie modułu rezerwacji.
-                        </p>
+                        @if ($booking->canPay())
+                            <div class="mt-4 p-3 border rounded">
+                                <h2 class="h6 fw-bold mb-2">Symulacja płatności</h2>
+                                <p class="small text-muted mb-3">
+                                    Brak prawdziwej bramki płatniczej — wybierz wynik transakcji testowej.
+                                </p>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <form action="{{ route('bookings.pay', $booking) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-success">
+                                            Opłać {{ number_format($booking->total_price, 2) }} PLN
+                                        </button>
+                                    </form>
+                                    <form action="{{ route('bookings.fail-payment', $booking) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-outline-danger">
+                                            Symuluj nieudaną płatność
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @endif
                     </div>
-                    <div class="card-footer bg-white">
+                    <div class="card-footer bg-white d-flex flex-wrap gap-2">
                         <a href="{{ route('bookings.index') }}" class="btn btn-outline-primary">Moje rezerwacje</a>
+                        @if ($booking->canCancel())
+                            <form action="{{ route('bookings.cancel', $booking) }}" method="POST"
+                                  onsubmit="return confirm('Czy na pewno chcesz anulować tę rezerwację?');">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-danger">Anuluj rezerwację</button>
+                            </form>
+                        @endif
                     </div>
                 </div>
             </div>

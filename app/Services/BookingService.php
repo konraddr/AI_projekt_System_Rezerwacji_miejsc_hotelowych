@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\BookingStatus;
 use App\Enums\PaymentStatus;
+use App\Exceptions\BookingActionException;
 use App\Exceptions\RoomNotAvailableException;
 use App\Models\Booking;
 use App\Models\ExtraAmenity;
@@ -92,6 +93,53 @@ class BookingService
                 'extraAmenities.hotelAmenity.amenity',
             ]);
         });
+    }
+
+    public function completeIfStayEnded(Booking $booking): Booking
+    {
+        if (
+            $booking->status === BookingStatus::Active
+            && $booking->payment_status === PaymentStatus::Paid
+            && $booking->check_out->lte(now()->startOfDay())
+        ) {
+            $booking->update(['status' => BookingStatus::Completed]);
+            $booking->refresh();
+        }
+
+        return $booking;
+    }
+
+    public function simulatePayment(Booking $booking): Booking
+    {
+        if (! $booking->canPay()) {
+            throw new BookingActionException('Ta rezerwacja nie oczekuje już na wpłatę.');
+        }
+
+        $booking->update(['payment_status' => PaymentStatus::Paid]);
+
+        return $booking->refresh();
+    }
+
+    public function simulatePaymentFailure(Booking $booking): Booking
+    {
+        if (! $booking->canPay()) {
+            throw new BookingActionException('Nie można oznaczyć tej rezerwacji jako nieopłaconej.');
+        }
+
+        $booking->update(['payment_status' => PaymentStatus::Failed]);
+
+        return $booking->refresh();
+    }
+
+    public function cancelBooking(Booking $booking): Booking
+    {
+        if (! $booking->canCancel()) {
+            throw new BookingActionException('Tej rezerwacji nie można już anulować.');
+        }
+
+        $booking->update(['status' => BookingStatus::Cancelled]);
+
+        return $booking->refresh();
     }
 
     /**

@@ -21,6 +21,9 @@ Route::middleware('auth')->prefix('bookings')->name('bookings.')->group(function
     Route::get('/', [BookingController::class, 'index'])->name('index');
     Route::get('/hotels/{hotel}/rooms/{room}/create', [BookingController::class, 'create'])->name('create');
     Route::post('/hotels/{hotel}/rooms/{room}', [BookingController::class, 'store'])->name('store');
+    Route::post('/{booking}/pay', [BookingController::class, 'pay'])->name('pay');
+    Route::post('/{booking}/fail-payment', [BookingController::class, 'failPayment'])->name('fail-payment');
+    Route::post('/{booking}/cancel', [BookingController::class, 'cancel'])->name('cancel');
     Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
 });
 

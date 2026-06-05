@@ -45,4 +45,16 @@ class Booking extends Model
     {
         return $this->hasMany(ExtraAmenity::class);
     }
+
+    public function canPay(): bool
+    {
+        return $this->status === BookingStatus::Active
+            && $this->payment_status === PaymentStatus::Pending;
+    }
+
+    public function canCancel(): bool
+    {
+        return $this->status === BookingStatus::Active
+            && $this->check_in->gte(now()->startOfDay());
+    }
 }

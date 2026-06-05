@@ -22,10 +22,14 @@
                         <span class="badge bg-primary fs-6">{{ number_format($booking->total_price, 2) }} PLN</span>
                     </div>
 
-                    <div class="d-flex flex-wrap gap-3 small text-muted mb-3">
-                        <span>{{ $booking->check_in->format('d.m.Y') }} — {{ $booking->check_out->format('d.m.Y') }}</span>
-                        <span class="text-capitalize">Rezerwacja: {{ $booking->status->value }}</span>
-                        <span class="text-capitalize">Płatność: {{ $booking->payment_status->value }}</span>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge bg-light text-dark border">
+                            {{ $booking->check_in->format('d.m.Y') }} — {{ $booking->check_out->format('d.m.Y') }}
+                        </span>
+                        <span class="badge bg-secondary">{{ $booking->status->label() }}</span>
+                        <span class="badge @if ($booking->payment_status->value === 'paid') bg-success @elseif ($booking->payment_status->value === 'failed') bg-danger @else bg-warning text-dark @endif">
+                            {{ $booking->payment_status->label() }}
+                        </span>
                     </div>
 
                     <a href="{{ route('bookings.show', $booking) }}" class="btn btn-sm btn-outline-primary">
