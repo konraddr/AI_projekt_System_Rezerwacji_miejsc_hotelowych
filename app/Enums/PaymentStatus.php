@@ -7,4 +7,13 @@ enum PaymentStatus: string
     case Pending = 'pending';
     case Paid = 'paid';
     case Failed = 'failed';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Pending => 'Oczekuje na wpłatę',
+            self::Paid => 'Opłacona',
+            self::Failed => 'Nieudana',
+        };
+    }
 }
