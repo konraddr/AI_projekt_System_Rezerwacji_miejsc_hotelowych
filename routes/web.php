@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\HotelController;
 use App\Http\Controllers\RoomController;
@@ -15,6 +16,13 @@ Route::get('/home', [HomeController::class, 'index'])->name('home');
 
 Route::get('/hotels', [HotelController::class, 'index'])->name('hotels.index');
 Route::get('/hotels/{hotel}', [HotelController::class, 'show'])->name('hotels.show');
+
+Route::middleware('auth')->prefix('bookings')->name('bookings.')->group(function () {
+    Route::get('/', [BookingController::class, 'index'])->name('index');
+    Route::get('/hotels/{hotel}/rooms/{room}/create', [BookingController::class, 'create'])->name('create');
+    Route::post('/hotels/{hotel}/rooms/{room}', [BookingController::class, 'store'])->name('store');
+    Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
+});
 
 Route::middleware('auth')->prefix('manage')->name('manage.')->group(function () {
     Route::get('/hotels', [HotelController::class, 'manage'])->name('hotels.index');

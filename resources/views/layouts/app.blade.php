@@ -36,6 +36,9 @@
                         </li>
                         @auth
                             <li class="nav-item">
+                                <a class="nav-link" href="{{ route('bookings.index') }}">Moje rezerwacje</a>
+                            </li>
+                            <li class="nav-item">
                                 <a class="nav-link" href="{{ route('manage.hotels.index') }}">Panel hoteli</a>
                             </li>
                         @endauth
