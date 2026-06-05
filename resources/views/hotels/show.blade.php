@@ -117,10 +117,17 @@
                                     </div>
                                 @endif
 
-                                <button type="button" class="btn btn-outline-primary btn-sm w-100" disabled
-                                        title="Rezerwacja — moduł Daniela">
-                                    Rezerwuj
-                                </button>
+                                @auth
+                                    <a href="{{ route('bookings.create', [$hotel, $room]) }}"
+                                       class="btn btn-outline-primary btn-sm w-100">
+                                        Rezerwuj
+                                    </a>
+                                @else
+                                    <a href="{{ route('login') }}"
+                                       class="btn btn-outline-primary btn-sm w-100">
+                                        Zaloguj się, aby zarezerwować
+                                    </a>
+                                @endauth
                             </li>
                         @empty
                             <li class="list-group-item text-center text-muted py-4">
