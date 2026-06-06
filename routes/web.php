@@ -3,6 +3,7 @@
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\HotelController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RoomController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,12 @@ Route::middleware('auth')->prefix('bookings')->name('bookings.')->group(function
     Route::post('/{booking}/fail-payment', [BookingController::class, 'failPayment'])->name('fail-payment');
     Route::post('/{booking}/cancel', [BookingController::class, 'cancel'])->name('cancel');
     Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
+});
+
+Route::middleware('auth')->prefix('notifications')->name('notifications.')->group(function () {
+    Route::get('/', [NotificationController::class, 'index'])->name('index');
+    Route::post('/read-all', [NotificationController::class, 'markAllAsRead'])->name('read-all');
+    Route::post('/{notification}', [NotificationController::class, 'markAsRead'])->name('read');
 });
 
 Route::middleware('auth')->prefix('manage')->name('manage.')->group(function () {
