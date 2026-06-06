@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\BookingNotificationEvent;
 use App\Enums\BookingStatus;
 use App\Enums\PaymentStatus;
 use App\Exceptions\BookingActionException;
@@ -18,6 +19,10 @@ use InvalidArgumentException;
 
 class BookingService
 {
+    public function __construct(
+        private readonly BookingNotificationService $notificationService
+    ) {}
+
     public function isRoomAvailable(Room $room, Carbon $checkIn, Carbon $checkOut): bool
     {
         $overlappingCount = Booking::query()
@@ -88,10 +93,14 @@ class BookingService
                 ]);
             }
 
-            return $booking->load([
+            $booking->load([
                 'room.hotel',
                 'extraAmenities.hotelAmenity.amenity',
             ]);
+
+            $this->notificationService->notify($booking, BookingNotificationEvent::Created);
+
+            return $booking;
         });
     }
 
@@ -104,6 +113,8 @@ class BookingService
         ) {
             $booking->update(['status' => BookingStatus::Completed]);
             $booking->refresh();
+            $booking->loadMissing(['room.hotel']);
+            $this->notificationService->notify($booking, BookingNotificationEvent::Completed);
         }
 
         return $booking;
@@ -116,8 +127,11 @@ class BookingService
         }
 
         $booking->update(['payment_status' => PaymentStatus::Paid]);
+        $booking->refresh();
+        $booking->loadMissing(['room.hotel']);
+        $this->notificationService->notify($booking, BookingNotificationEvent::PaymentPaid);
 
-        return $booking->refresh();
+        return $booking;
     }
 
     public function simulatePaymentFailure(Booking $booking): Booking
@@ -127,8 +141,11 @@ class BookingService
         }
 
         $booking->update(['payment_status' => PaymentStatus::Failed]);
+        $booking->refresh();
+        $booking->loadMissing(['room.hotel']);
+        $this->notificationService->notify($booking, BookingNotificationEvent::PaymentFailed);
 
-        return $booking->refresh();
+        return $booking;
     }
 
     public function cancelBooking(Booking $booking): Booking
@@ -138,9 +155,11 @@ class BookingService
         }
 
         $booking->update(['status' => BookingStatus::Cancelled]);
+        $booking->refresh();
+        $booking->loadMissing(['room.hotel']);
+        $this->notificationService->notify($booking, BookingNotificationEvent::Cancelled);
 
-        return $booking->refresh();
-    }
+        return $booking;
 
     /**
      * @param  array<int>  $roomAmenityIds

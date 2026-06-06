@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\BookingNotificationEvent;
 use App\Enums\BookingStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\UserPermission;
@@ -10,6 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class BookingPenaltyService
 {
+    public function __construct(
+        private readonly BookingNotificationService $notificationService
+    ) {}
+
     public function penalizeOverdueUnpaidBookings(): int
     {
         $deadline = now()->subHours(config('bookings.unpaid_grace_hours'));
@@ -36,6 +41,10 @@ class BookingPenaltyService
                     $user->update(['permission' => UserPermission::Banned]);
                 }
             });
+
+            $booking->refresh();
+            $booking->loadMissing(['room.hotel']);
+            $this->notificationService->notify($booking, BookingNotificationEvent::Penalized);
 
             $penalizedCount++;
         }
