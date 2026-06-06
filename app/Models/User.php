@@ -20,6 +20,31 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    public function hotels(): HasMany
+    {
+        return $this->hasMany(Hotel::class);
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
+    }
+
+    public function sentMessages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
+    public function receivedMessages(): HasMany
+    {
+        return $this->hasMany(Message::class, 'receiver_id');
+    }
+
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class);
@@ -27,7 +52,12 @@ class User extends Authenticatable
 
     public function workerHotels(): BelongsToMany
     {
-        return $this->belongsToMany(Hotel::class, 'workers', 'worker_id', 'hotel_id');
+        return $this->belongsToMany(
+            Hotel::class,
+            'workers',
+            'worker_id',
+            'hotel_id'
+        );
     }
 
     public function hasPermission(UserPermission ...$permissions): bool

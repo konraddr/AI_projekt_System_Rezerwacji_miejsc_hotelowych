@@ -52,6 +52,8 @@
                             @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
+                        @include('partials.hotel-photos-link')
+
                         @include('partials.hotel-map-form', [
                             'latitude' => old('latitude', 52.069),
                             'longitude' => old('longitude', 19.480),

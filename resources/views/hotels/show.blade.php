@@ -25,6 +25,10 @@
                     </div>
                 </div>
 
+                @include('partials.hotel-public-photo-gallery')
+
+                @include('partials.hotel-reviews-public')
+
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-body">
                         <h2 class="h5 fw-bold border-bottom pb-2 mb-3">Udogodnienia obiektu</h2>
@@ -85,6 +89,9 @@
                                     <span class="badge bg-primary">{{ number_format($room->price_per_night, 2) }} PLN / noc</span>
                                 </div>
                                 <p class="small text-muted mb-2">{{ Str::limit($room->description, 80) }}</p>
+
+                                @include('partials.room-public-photo-thumbs', ['room' => $room])
+
                                 <p class="small mb-2">
                                     <span class="badge bg-light text-dark border">{{ $room->capacity }} os.</span>
                                     <span class="badge bg-light text-dark border">{{ $room->quantity }} szt.</span>
