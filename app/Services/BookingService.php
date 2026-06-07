@@ -160,6 +160,7 @@ class BookingService
         $this->notificationService->notify($booking, BookingNotificationEvent::Cancelled);
 
         return $booking;
+    }
 
     /**
      * @param  array<int>  $roomAmenityIds
