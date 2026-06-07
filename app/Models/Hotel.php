@@ -47,6 +47,16 @@ class Hotel extends Model
             ->withTimestamps();
     }
 
+    public function workers(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'workers',
+            'hotel_id',
+            'worker_id'
+        );
+    }
+
     public function photos(): MorphMany
     {
         return $this->morphMany(Photo::class, 'imageable')->orderBy('order');

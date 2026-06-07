@@ -58,6 +58,8 @@ class HotelController extends Controller
             'longitude' => $request->input('longitude', 19.480),
         ]);
 
+        $hotel->workers()->attach($request->user()->id);
+
         $amenityPrices = AmenityInheritanceService::parseAmenityPrices(
             $validated['amenities'] ?? null,
             $request->input('amenity_prices', [])
