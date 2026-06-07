@@ -38,6 +38,11 @@ class Review extends Model
         return $this->belongsTo(Hotel::class);
     }
 
+    public function booking(): BelongsTo
+    {
+        return $this->belongsTo(Booking::class);
+    }
+
     public function scopeVisible(Builder $query): Builder
     {
         return $query->where('is_banned', false);
