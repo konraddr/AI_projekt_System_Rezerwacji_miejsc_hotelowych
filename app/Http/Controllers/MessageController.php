@@ -5,23 +5,29 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreMessageRequest;
 use App\Models\Hotel;
 use App\Models\Message;
-use App\Models\User;
+use App\Services\ChatRecipientService;
+use App\Services\MessageNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class MessageController extends Controller
 {
+    public function __construct(
+        private readonly MessageNotificationService $messageNotificationService,
+        private readonly ChatRecipientService $chatRecipientService
+    ) {}
+
     public function chat(Hotel $hotel): View
     {
         $this->authorize('viewAny', Message::class);
 
-        $receivers = $this->chatReceivers($hotel);
+        $receivers = $this->chatRecipientService->receiversForHotel($hotel, auth()->user());
 
         return view('messages.chat', [
             'hotel' => $hotel,
             'receivers' => $receivers,
-            'defaultReceiverId' => $receivers->first()?->id ?? auth()->id(),
+            'defaultReceiverId' => $this->chatRecipientService->defaultReceiverId($receivers, auth()->user()),
         ]);
     }
 
@@ -66,6 +72,8 @@ class MessageController extends Controller
 
         $message->load(['sender:id,name', 'receiver:id,name']);
 
+        $this->messageNotificationService->notifyReceiver($message);
+
         return response()->json([
             'message' => $this->messagePayload($message),
         ], 201);
@@ -83,37 +91,5 @@ class MessageController extends Controller
             'is_mine' => $message->sender_id === auth()->id(),
             'created_at' => $message->created_at->format('d.m.Y H:i'),
         ];
-    }
-
-    private function chatReceivers(Hotel $hotel)
-    {
-        $participantIds = Message::query()
-            ->where('hotel_id', $hotel->id)
-            ->forParticipant(auth()->id())
-            ->get(['sender_id', 'receiver_id'])
-            ->flatMap(fn (Message $message) => [$message->sender_id, $message->receiver_id])
-            ->unique()
-            ->filter(fn (int $id) => $id !== auth()->id())
-            ->values();
-
-        $receivers = User::query()
-            ->whereIn('id', $participantIds)
-            ->orderBy('name')
-            ->get();
-
-        $admin = User::query()
-            ->whereIn('email', config('maciej.admin_emails', []))
-            ->first();
-
-        if ($admin && ! $receivers->contains('id', $admin->id)) {
-            $receivers->prepend($admin);
-        }
-
-        $self = auth()->user();
-        if (! $receivers->contains('id', $self->id)) {
-            $receivers->push($self);
-        }
-
-        return $receivers->unique('id')->values();
     }
 }

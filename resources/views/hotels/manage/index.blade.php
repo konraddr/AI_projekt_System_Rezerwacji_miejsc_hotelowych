@@ -33,7 +33,7 @@
                             <td class="text-end">
                                 <div class="d-inline-flex gap-1 flex-wrap justify-content-end">
                                     <a href="{{ route('hotels.show', $hotel) }}" class="btn btn-sm btn-outline-secondary">Podgląd</a>
-                                    <a href="{{ route('manage.rooms.index', $hotel) }}" class="btn btn-sm btn-outline-primary">Pokoje</a>
+                                    @include('partials.hotel-owner-links', ['hotel' => $hotel])
                                     <a href="{{ route('manage.hotels.edit', $hotel) }}" class="btn btn-sm btn-outline-warning">Edytuj</a>
                                     @include('partials.delete-modal', [
                                         'modalId' => 'deleteHotel'.$hotel->id,

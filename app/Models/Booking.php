@@ -7,6 +7,7 @@ use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Booking extends Model
 {
@@ -44,6 +45,17 @@ class Booking extends Model
     public function extraAmenities(): HasMany
     {
         return $this->hasMany(ExtraAmenity::class);
+    }
+
+    public function review(): HasOne
+    {
+        return $this->hasOne(Review::class);
+    }
+
+    public function qualifiesForReview(): bool
+    {
+        return $this->payment_status === PaymentStatus::Paid
+            && $this->status === BookingStatus::Completed;
     }
 
     public function canPay(): bool

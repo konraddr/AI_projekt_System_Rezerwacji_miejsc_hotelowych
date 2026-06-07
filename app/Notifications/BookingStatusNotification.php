@@ -44,6 +44,7 @@ class BookingStatusNotification extends Notification
             'title' => $this->event->title(),
             'message' => $this->event->body($this->booking),
             'url' => route('bookings.show', $this->booking),
+            'action_label' => 'Zobacz rezerwację',
         ];
     }
 }
