@@ -1,6 +1,10 @@
 <div class="mb-4">
     <label class="form-label fw-semibold">Lokalizacja na mapie</label>
-    <p class="text-muted small mb-2">Kliknij mapę, aby ustawić współrzędne hotelu (szerokość i długość geograficzna).</p>
+    <p class="text-muted small mb-2">
+        Kliknij mapę, aby ustawić pinezkę. Miasto i adres uzupełnią się automatycznie —
+        możesz je poprawić ręcznie, wtedy pinezka pozostanie bez zmian.
+    </p>
+    <p id="map-geocode-status" class="small text-muted mb-2"></p>
 
     <div id="hotel-map"
          class="hotel-map-container rounded border overflow-hidden"
