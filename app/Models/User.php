@@ -62,7 +62,7 @@ class User extends Authenticatable
 
     public function isBanned(): bool
     {
-        return $this->permission->isBanned();
+        return $this->permission?->isBanned() ?? false;
     }
 
     /**

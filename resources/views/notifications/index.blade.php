@@ -31,11 +31,13 @@
                             @if ($notification->read_at === null)
                                 <form action="{{ route('notifications.read', $notification->id) }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="btn btn-sm btn-primary">Przejdź do rezerwacji</button>
+                                    <button type="submit" class="btn btn-sm btn-primary">
+                                        {{ $notification->data['action_label'] ?? 'Przejdź do szczegółów' }}
+                                    </button>
                                 </form>
                             @else
                                 <a href="{{ $notification->data['url'] }}" class="btn btn-sm btn-outline-primary">
-                                    Zobacz rezerwację
+                                    {{ $notification->data['action_label'] ?? 'Zobacz szczegóły' }}
                                 </a>
                             @endif
                         @endif
