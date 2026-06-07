@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AmenityController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\HotelController;
@@ -48,4 +49,11 @@ Route::middleware('auth')->prefix('manage')->name('manage.')->group(function () 
     Route::get('/hotels/{hotel}/rooms/{room}/edit', [RoomController::class, 'edit'])->name('rooms.edit');
     Route::put('/hotels/{hotel}/rooms/{room}', [RoomController::class, 'update'])->name('rooms.update');
     Route::delete('/hotels/{hotel}/rooms/{room}', [RoomController::class, 'destroy'])->name('rooms.destroy');
+
+    Route::get('/amenities', [AmenityController::class, 'index'])->name('amenities.index');
+    Route::get('/amenities/create', [AmenityController::class, 'create'])->name('amenities.create');
+    Route::post('/amenities', [AmenityController::class, 'store'])->name('amenities.store');
+    Route::get('/amenities/{amenity}/edit', [AmenityController::class, 'edit'])->name('amenities.edit');
+    Route::put('/amenities/{amenity}', [AmenityController::class, 'update'])->name('amenities.update');
+    Route::delete('/amenities/{amenity}', [AmenityController::class, 'destroy'])->name('amenities.destroy');
 });
