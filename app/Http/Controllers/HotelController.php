@@ -7,11 +7,13 @@ use App\Http\Requests\UpdateHotelRequest;
 use App\Models\Amenity;
 use App\Models\Hotel;
 use App\Services\AmenityInheritanceService;
+use App\Services\HotelAccessService;
 
 class HotelController extends Controller
 {
     public function __construct(
-        private readonly AmenityInheritanceService $amenityService
+        private readonly AmenityInheritanceService $amenityService,
+        private readonly HotelAccessService $hotelAccess
     ) {}
 
     public function index()
@@ -33,7 +35,7 @@ class HotelController extends Controller
 
     public function manage()
     {
-        $hotels = Hotel::withCount(['rooms', 'amenities'])->latest()->get();
+        $hotels = $this->hotelAccess->hotelsForUser(auth()->user());
 
         return view('hotels.manage.index', compact('hotels'));
     }
@@ -76,6 +78,8 @@ class HotelController extends Controller
 
     public function edit(Hotel $hotel)
     {
+        $this->hotelAccess->authorizeHotelAccess(auth()->user(), $hotel);
+
         $hotel->load('amenities');
         $amenities = Amenity::orderBy('name')->get();
 
@@ -84,6 +88,8 @@ class HotelController extends Controller
 
     public function update(UpdateHotelRequest $request, Hotel $hotel)
     {
+        $this->hotelAccess->authorizeHotelAccess($request->user(), $hotel);
+
         $validated = $request->validated();
 
         $hotel->update([
@@ -109,6 +115,8 @@ class HotelController extends Controller
 
     public function destroy(Hotel $hotel)
     {
+        $this->hotelAccess->authorizeHotelAccess(auth()->user(), $hotel);
+
         $hotel->delete();
 
         return redirect()
