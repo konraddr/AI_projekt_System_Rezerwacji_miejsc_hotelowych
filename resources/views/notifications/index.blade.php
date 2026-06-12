@@ -18,6 +18,27 @@
 
         @include('partials.alerts')
 
+        @if (filled(config('webpush.vapid.public_key')))
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <div>
+                        <h2 class="h6 fw-bold mb-1">Powiadomienia push w przeglądarce</h2>
+                        <p class="text-muted small mb-0" id="web-push-status">
+                            Otrzymuj alerty o rezerwacjach i wiadomościach na pulpicie, nawet gdy karta jest w tle.
+                        </p>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-sm btn-primary" id="enable-web-push">
+                            Włącz powiadomienia push
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary d-none" id="disable-web-push">
+                            Wyłącz powiadomienia push
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         @forelse ($notifications as $notification)
             <div class="card shadow-sm border-0 mb-3 @if ($notification->read_at === null) border-start border-primary border-4 @endif">
                 <div class="card-body">

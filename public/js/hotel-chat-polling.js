@@ -161,6 +161,7 @@
                 const firstError = payload.errors
                     ? Object.values(payload.errors).flat()[0]
                     : null;
+                await fetchMessages(false);
                 throw new Error(firstError || 'Nie udało się wysłać wiadomości.');
             }
 

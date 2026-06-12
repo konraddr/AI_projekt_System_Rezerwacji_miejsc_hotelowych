@@ -34,13 +34,15 @@
                                 <div class="d-inline-flex gap-1 flex-wrap justify-content-end">
                                     <a href="{{ route('hotels.show', $hotel) }}" class="btn btn-sm btn-outline-secondary">Podgląd</a>
                                     @include('partials.hotel-owner-links', ['hotel' => $hotel])
-                                    <a href="{{ route('manage.hotels.edit', $hotel) }}" class="btn btn-sm btn-outline-warning">Edytuj</a>
-                                    @include('partials.delete-modal', [
-                                        'modalId' => 'deleteHotel'.$hotel->id,
-                                        'title' => 'Usuń hotel',
-                                        'message' => 'Czy na pewno chcesz usunąć hotel „'.$hotel->name.'”? Tej operacji nie można cofnąć.',
-                                        'action' => route('manage.hotels.destroy', $hotel),
-                                    ])
+                                    @if (app(\App\Services\HotelAccessService::class)->userCanAccess(auth()->user(), $hotel, \App\Enums\HotelWorkerAccess::Hotel))
+                                        <a href="{{ route('manage.hotels.edit', $hotel) }}" class="btn btn-sm btn-outline-warning">Edytuj</a>
+                                        @include('partials.delete-modal', [
+                                            'modalId' => 'deleteHotel'.$hotel->id,
+                                            'title' => 'Usuń hotel',
+                                            'message' => 'Czy na pewno chcesz usunąć hotel „'.$hotel->name.'”? Tej operacji nie można cofnąć.',
+                                            'action' => route('manage.hotels.destroy', $hotel),
+                                        ])
+                                    @endif
                                 </div>
                             </td>
                         </tr>

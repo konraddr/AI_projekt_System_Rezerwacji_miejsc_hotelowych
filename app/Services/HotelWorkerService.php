@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Enums\HotelWorkerAccess;
 use App\Enums\UserPermission;
 use App\Models\Hotel;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 class HotelWorkerService
@@ -19,20 +21,31 @@ class HotelWorkerService
     }
 
     /**
-     * @return Collection<int, User>
+     * @param  list<string>  $permissions
+     * @return list<string>
      */
-    public function assignableUsers(Hotel $hotel): Collection
+    public function normalizePermissions(array $permissions): array
     {
-        $workerIds = $hotel->workers()->pluck('users.id');
+        $allowed = HotelWorkerAccess::values();
 
-        return User::query()
-            ->where('permission', '!=', UserPermission::Banned)
-            ->whereNotIn('id', $workerIds)
-            ->orderBy('name')
-            ->get();
+        $normalized = collect($permissions)
+            ->map(fn (mixed $permission) => is_string($permission) ? Str::lower(trim($permission)) : null)
+            ->filter(fn (?string $permission) => $permission !== null && in_array($permission, $allowed, true))
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($normalized === []) {
+            throw new InvalidArgumentException('Wybierz co najmniej jedno uprawnienie dla pracownika.');
+        }
+
+        return $normalized;
     }
 
-    public function attachWorker(Hotel $hotel, User $worker): void
+    /**
+     * @param  list<string>  $permissions
+     */
+    public function attachWorker(Hotel $hotel, User $worker, array $permissions): void
     {
         if ($worker->isBanned()) {
             throw new InvalidArgumentException('Nie można dodać zablokowanego użytkownika.');
@@ -42,11 +55,45 @@ class HotelWorkerService
             throw new InvalidArgumentException('Ten użytkownik jest już pracownikiem hotelu.');
         }
 
-        $hotel->workers()->attach($worker->id);
+        $hotel->workers()->attach($worker->id, [
+            'permissions' => $this->normalizePermissions($permissions),
+        ]);
 
         if ($worker->hasPermission(UserPermission::Client)) {
             $worker->update(['permission' => UserPermission::Worker]);
         }
+    }
+
+    /**
+     * @param  list<string>  $permissions
+     */
+    public function attachWorkerByEmail(Hotel $hotel, string $email, array $permissions): User
+    {
+        $worker = User::query()
+            ->where('email', Str::lower(trim($email)))
+            ->first();
+
+        if ($worker === null) {
+            throw new InvalidArgumentException('Nie znaleziono użytkownika o podanym adresie e-mail.');
+        }
+
+        $this->attachWorker($hotel, $worker, $permissions);
+
+        return $worker;
+    }
+
+    /**
+     * @param  list<string>  $permissions
+     */
+    public function updateWorkerPermissions(Hotel $hotel, User $worker, array $permissions): void
+    {
+        if (! $hotel->workers()->whereKey($worker->id)->exists()) {
+            throw new InvalidArgumentException('Ten użytkownik nie jest pracownikiem hotelu.');
+        }
+
+        $hotel->workers()->updateExistingPivot($worker->id, [
+            'permissions' => $this->normalizePermissions($permissions),
+        ]);
     }
 
     public function detachWorker(Hotel $hotel, User $worker): void

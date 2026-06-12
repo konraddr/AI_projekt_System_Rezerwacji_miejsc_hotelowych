@@ -6,7 +6,7 @@ use App\Enums\HotelWorkerAccess;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class AttachHotelWorkerRequest extends FormRequest
+class UpdateHotelWorkerRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -19,7 +19,6 @@ class AttachHotelWorkerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email', 'max:255', 'exists:users,email'],
             'permissions' => ['required', 'array', 'min:1'],
             'permissions.*' => ['string', Rule::in(HotelWorkerAccess::values())],
         ];
@@ -31,9 +30,6 @@ class AttachHotelWorkerRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' => 'Podaj adres e-mail pracownika.',
-            'email.email' => 'Podaj prawidłowy adres e-mail.',
-            'email.exists' => 'Nie znaleziono użytkownika o podanym adresie e-mail.',
             'permissions.required' => 'Wybierz co najmniej jedno uprawnienie.',
             'permissions.min' => 'Wybierz co najmniej jedno uprawnienie.',
         ];

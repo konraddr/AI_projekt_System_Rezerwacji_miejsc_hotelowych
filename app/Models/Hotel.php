@@ -54,7 +54,9 @@ class Hotel extends Model
             'workers',
             'hotel_id',
             'worker_id'
-        );
+        )
+            ->using(HotelWorker::class)
+            ->withPivot('permissions');
     }
 
     public function photos(): MorphMany

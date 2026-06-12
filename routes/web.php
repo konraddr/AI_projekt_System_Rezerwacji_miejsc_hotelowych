@@ -8,6 +8,7 @@ use App\Http\Controllers\HotelController;
 use App\Http\Controllers\HotelWorkerController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\RoomController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,8 +35,14 @@ Route::middleware('auth')->prefix('bookings')->name('bookings.')->group(function
 
 Route::middleware('auth')->prefix('notifications')->name('notifications.')->group(function () {
     Route::get('/', [NotificationController::class, 'index'])->name('index');
+    Route::get('/unread-count', [NotificationController::class, 'unreadCount'])->name('unread-count');
     Route::post('/read-all', [NotificationController::class, 'markAllAsRead'])->name('read-all');
     Route::post('/{notification}', [NotificationController::class, 'markAsRead'])->name('read');
+});
+
+Route::middleware('auth')->prefix('push-subscriptions')->name('push-subscriptions.')->group(function () {
+    Route::post('/', [PushSubscriptionController::class, 'store'])->name('store');
+    Route::delete('/', [PushSubscriptionController::class, 'destroy'])->name('destroy');
 });
 
 Route::middleware('auth')->prefix('profile')->name('profile.')->group(function () {
@@ -63,6 +70,7 @@ Route::middleware('auth')->prefix('manage')->name('manage.')->group(function () 
 
     Route::get('/hotels/{hotel}/workers', [HotelWorkerController::class, 'index'])->name('hotels.workers.index');
     Route::post('/hotels/{hotel}/workers', [HotelWorkerController::class, 'store'])->name('hotels.workers.store');
+    Route::put('/hotels/{hotel}/workers/{user}', [HotelWorkerController::class, 'update'])->name('hotels.workers.update');
     Route::delete('/hotels/{hotel}/workers/{user}', [HotelWorkerController::class, 'destroy'])->name('hotels.workers.destroy');
 
     Route::middleware('permission:0')->group(function () {

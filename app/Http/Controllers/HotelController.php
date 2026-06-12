@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreHotelRequest;
 use App\Http\Requests\UpdateHotelRequest;
+use App\Enums\HotelWorkerAccess;
 use App\Models\Amenity;
 use App\Models\Hotel;
 use App\Services\AmenityInheritanceService;
@@ -60,7 +61,9 @@ class HotelController extends Controller
             'longitude' => $request->input('longitude', 19.480),
         ]);
 
-        $hotel->workers()->attach($request->user()->id);
+        $hotel->workers()->attach($request->user()->id, [
+            'permissions' => HotelWorkerAccess::values(),
+        ]);
 
         $amenityPrices = AmenityInheritanceService::parseAmenityPrices(
             $validated['amenities'] ?? null,
@@ -78,7 +81,7 @@ class HotelController extends Controller
 
     public function edit(Hotel $hotel)
     {
-        $this->hotelAccess->authorizeHotelAccess(auth()->user(), $hotel);
+        $this->hotelAccess->authorizeHotelCapability(auth()->user(), $hotel, HotelWorkerAccess::Hotel);
 
         $hotel->load('amenities');
         $amenities = Amenity::orderBy('name')->get();
@@ -88,7 +91,7 @@ class HotelController extends Controller
 
     public function update(UpdateHotelRequest $request, Hotel $hotel)
     {
-        $this->hotelAccess->authorizeHotelAccess($request->user(), $hotel);
+        $this->hotelAccess->authorizeHotelCapability($request->user(), $hotel, HotelWorkerAccess::Hotel);
 
         $validated = $request->validated();
 
@@ -115,7 +118,7 @@ class HotelController extends Controller
 
     public function destroy(Hotel $hotel)
     {
-        $this->hotelAccess->authorizeHotelAccess(auth()->user(), $hotel);
+        $this->hotelAccess->authorizeHotelCapability(auth()->user(), $hotel, HotelWorkerAccess::Hotel);
 
         $hotel->delete();
 

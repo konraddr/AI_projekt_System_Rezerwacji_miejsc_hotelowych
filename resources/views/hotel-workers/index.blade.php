@@ -13,7 +13,7 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
         <div>
             <h1 class="h3 mb-1">Pracownicy: {{ $hotel->name }}</h1>
-            <p class="text-muted mb-0">Zarządzaj dostępem do panelu hotelu.</p>
+            <p class="text-muted mb-0">Dodawaj pracowników po e-mailu i określaj ich uprawnienia w hotelu.</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
             @include('partials.hotel-owner-links', ['hotel' => $hotel])
@@ -29,24 +29,46 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Użytkownik</th>
-                                <th>E-mail</th>
+                                <th>Uprawnienia</th>
                                 <th class="text-end">Akcje</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse ($workers as $worker)
+                                @php
+                                    $workerPermissions = is_array($worker->pivot->permissions) && $worker->pivot->permissions !== []
+                                        ? $worker->pivot->permissions
+                                        : \App\Enums\HotelWorkerAccess::values();
+                                @endphp
                                 <tr>
-                                    <td class="fw-semibold">
-                                        {{ $worker->name }}
-                                        @if ($worker->last_name)
-                                            {{ $worker->last_name }}
-                                        @endif
-                                        @if ($worker->id === auth()->id())
-                                            <span class="badge bg-light text-dark border">Ty</span>
-                                        @endif
+                                    <td>
+                                        <div class="fw-semibold">
+                                            {{ $worker->name }}
+                                            @if ($worker->last_name)
+                                                {{ $worker->last_name }}
+                                            @endif
+                                            @if ($worker->id === auth()->id())
+                                                <span class="badge bg-light text-dark border">Ty</span>
+                                            @endif
+                                        </div>
+                                        <div class="small text-muted">{{ $worker->email }}</div>
                                     </td>
-                                    <td>{{ $worker->email }}</td>
-                                    <td class="text-end">
+                                    <td>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach ($accessOptions as $access)
+                                                @if (in_array($access->value, $workerPermissions, true))
+                                                    <span class="badge bg-light text-dark border">{{ $access->label() }}</span>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </td>
+                                    <td class="text-end text-nowrap">
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#worker-permissions-{{ $worker->id }}">
+                                            Edytuj uprawnienia
+                                        </button>
                                         @if ($workers->count() > 1)
                                             <form action="{{ route('manage.hotels.workers.destroy', [$hotel, $worker]) }}"
                                                   method="POST" class="d-inline"
@@ -55,9 +77,21 @@
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-outline-danger">Usuń</button>
                                             </form>
-                                        @else
-                                            <span class="text-muted small">Ostatni pracownik</span>
                                         @endif
+                                    </td>
+                                </tr>
+                                <tr class="collapse" id="worker-permissions-{{ $worker->id }}">
+                                    <td colspan="3" class="bg-light">
+                                        <form action="{{ route('manage.hotels.workers.update', [$hotel, $worker]) }}" method="POST">
+                                            @csrf
+                                            @method('PUT')
+                                            @include('partials.worker-permissions-fields', [
+                                                'accessOptions' => $accessOptions,
+                                                'selected' => $workerPermissions,
+                                                'inputIdPrefix' => 'worker-'.$worker->id,
+                                            ])
+                                            <button type="submit" class="btn btn-sm btn-primary mt-2">Zapisz uprawnienia</button>
+                                        </form>
                                     </td>
                                 </tr>
                             @empty
@@ -75,31 +109,30 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white fw-semibold">Dodaj pracownika</div>
                 <div class="card-body">
-                    @if ($assignableUsers->isEmpty())
-                        <p class="text-muted mb-0">Wszyscy aktywni użytkownicy mają już dostęp do tego hotelu.</p>
-                    @else
-                        <form action="{{ route('manage.hotels.workers.store', $hotel) }}" method="POST">
-                            @csrf
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold" for="user_id">Użytkownik</label>
-                                <select name="user_id" id="user_id"
-                                        class="form-select @error('user_id') is-invalid @enderror" required>
-                                    <option value="" disabled selected>Wybierz…</option>
-                                    @foreach ($assignableUsers as $user)
-                                        <option value="{{ $user->id }}" @selected((int) old('user_id') === $user->id)>
-                                            {{ $user->name }}
-                                            @if ($user->last_name)
-                                                {{ $user->last_name }}
-                                            @endif
-                                            ({{ $user->email }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('user_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            <button type="submit" class="btn btn-primary">Dodaj pracownika</button>
-                        </form>
-                    @endif
+                    <form action="{{ route('manage.hotels.workers.store', $hotel) }}" method="POST">
+                        @csrf
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="email">Adres e-mail</label>
+                            <input type="email" name="email" id="email"
+                                   class="form-control @error('email') is-invalid @enderror"
+                                   value="{{ old('email') }}"
+                                   placeholder="np. jan.kowalski@example.com"
+                                   required>
+                            @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <div class="form-text">Użytkownik musi mieć już konto w systemie.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Uprawnienia</label>
+                            @include('partials.worker-permissions-fields', [
+                                'accessOptions' => $accessOptions,
+                                'selected' => old('permissions', ['rooms', 'bookings', 'chat']),
+                                'inputIdPrefix' => 'new-worker',
+                            ])
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Dodaj pracownika</button>
+                    </form>
                 </div>
             </div>
         </div>
