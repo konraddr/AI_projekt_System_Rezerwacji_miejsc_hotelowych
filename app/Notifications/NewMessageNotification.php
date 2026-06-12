@@ -3,13 +3,17 @@
 namespace App\Notifications;
 
 use App\Models\Message;
+use App\Notifications\Concerns\BuildsWebPushMessage;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Str;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class NewMessageNotification extends Notification
 {
+    use BuildsWebPushMessage;
     use Queueable;
 
     public function __construct(
@@ -17,11 +21,17 @@ class NewMessageNotification extends Notification
     ) {}
 
     /**
-     * @return array<int, string>
+     * @return array<int, string|class-string>
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        $channels = ['database', 'mail'];
+
+        if ($this->webPushEnabled()) {
+            $channels[] = WebPushChannel::class;
+        }
+
+        return $channels;
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -32,6 +42,11 @@ class NewMessageNotification extends Notification
             ->subject('Nowa wiadomość — '.$this->message->hotel->name)
             ->line($this->body())
             ->action('Otwórz czat', route('manage.hotels.chat', $this->message->hotel));
+    }
+
+    public function toWebPush(object $notifiable, self $notification): WebPushMessage
+    {
+        return $this->buildWebPushMessage($this->toArray($notifiable));
     }
 
     /**
@@ -58,5 +73,11 @@ class NewMessageNotification extends Notification
         $excerpt = Str::limit($this->message->content, 120);
 
         return "{$sender} napisał w czacie hotelu {$hotel}: „{$excerpt}”";
+    }
+
+    private function webPushEnabled(): bool
+    {
+        return filled(config('webpush.vapid.public_key'))
+            && filled(config('webpush.vapid.private_key'));
     }
 }

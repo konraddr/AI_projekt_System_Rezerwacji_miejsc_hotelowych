@@ -4,12 +4,16 @@ namespace App\Notifications;
 
 use App\Enums\BookingNotificationEvent;
 use App\Models\Booking;
+use App\Notifications\Concerns\BuildsWebPushMessage;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class BookingStatusNotification extends Notification
 {
+    use BuildsWebPushMessage;
     use Queueable;
 
     public function __construct(
@@ -18,11 +22,17 @@ class BookingStatusNotification extends Notification
     ) {}
 
     /**
-     * @return array<int, string>
+     * @return array<int, string|class-string>
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'mail'];
+        $channels = ['database', 'mail'];
+
+        if ($this->webPushEnabled()) {
+            $channels[] = WebPushChannel::class;
+        }
+
+        return $channels;
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -31,6 +41,11 @@ class BookingStatusNotification extends Notification
             ->subject($this->event->title())
             ->line($this->event->body($this->booking))
             ->action('Zobacz rezerwację', route('bookings.show', $this->booking));
+    }
+
+    public function toWebPush(object $notifiable, self $notification): WebPushMessage
+    {
+        return $this->buildWebPushMessage($this->toArray($notifiable));
     }
 
     /**
@@ -46,5 +61,11 @@ class BookingStatusNotification extends Notification
             'url' => route('bookings.show', $this->booking),
             'action_label' => 'Zobacz rezerwację',
         ];
+    }
+
+    private function webPushEnabled(): bool
+    {
+        return filled(config('webpush.vapid.public_key'))
+            && filled(config('webpush.vapid.private_key'));
     }
 }

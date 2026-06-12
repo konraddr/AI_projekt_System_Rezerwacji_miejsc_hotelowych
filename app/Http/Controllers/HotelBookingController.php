@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Hotel;
+use App\Enums\HotelWorkerAccess;
 use App\Services\BookingService;
 use App\Services\HotelAccessService;
 use App\Services\HotelBookingService;
@@ -21,7 +22,7 @@ class HotelBookingController extends Controller
 
     public function index(Hotel $hotel): View
     {
-        $this->hotelAccess->authorizeHotelAccess(auth()->user(), $hotel);
+        $this->hotelAccess->authorizeHotelCapability(auth()->user(), $hotel, HotelWorkerAccess::Bookings);
 
         $bookings = $this->hotelBookingService
             ->bookingsForHotel($hotel)
@@ -32,7 +33,7 @@ class HotelBookingController extends Controller
 
     public function show(Hotel $hotel, Booking $booking): View
     {
-        $this->hotelAccess->authorizeHotelAccess(auth()->user(), $hotel);
+        $this->hotelAccess->authorizeHotelCapability(auth()->user(), $hotel, HotelWorkerAccess::Bookings);
         abort_unless($this->hotelBookingService->bookingBelongsToHotel($booking, $hotel), 404);
 
         $booking->load([

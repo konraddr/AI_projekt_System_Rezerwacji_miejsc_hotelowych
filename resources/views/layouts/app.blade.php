@@ -7,6 +7,18 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    @auth
+        @if (filled(config('webpush.vapid.public_key')))
+            <meta name="webpush-config"
+                  data-vapid-public-key="{{ config('webpush.vapid.public_key') }}"
+                  data-subscribe-url="{{ route('push-subscriptions.store') }}"
+                  data-unsubscribe-url="{{ route('push-subscriptions.destroy') }}">
+        @endif
+        <meta name="notification-badge-config"
+              data-poll-url="{{ route('notifications.unread-count') }}"
+              data-poll-interval="10000">
+    @endauth
+
     <title>@yield('title', config('app.name', 'HotelBook'))</title>
 
     <!-- Fonts -->
@@ -64,11 +76,10 @@
                                 <a class="nav-link position-relative" href="{{ route('notifications.index') }}">
                                     Powiadomienia
                                     @php($unreadNotifications = Auth::user()->unreadNotifications()->count())
-                                    @if ($unreadNotifications > 0)
-                                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                            {{ $unreadNotifications }}
-                                        </span>
-                                    @endif
+                                    <span id="notifications-badge"
+                                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger @if ($unreadNotifications === 0) d-none @endif">
+                                        {{ $unreadNotifications }}
+                                    </span>
                                 </a>
                             </li>
                             <li class="nav-item dropdown">

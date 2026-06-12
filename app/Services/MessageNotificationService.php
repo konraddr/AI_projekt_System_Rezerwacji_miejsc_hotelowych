@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Message;
 use App\Notifications\NewMessageNotification;
+use Throwable;
 
 class MessageNotificationService
 {
@@ -23,6 +24,10 @@ class MessageNotificationService
             return;
         }
 
-        $message->receiver->notify(new NewMessageNotification($message));
+        try {
+            $message->receiver->notify(new NewMessageNotification($message));
+        } catch (Throwable $exception) {
+            report($exception);
+        }
     }
 }

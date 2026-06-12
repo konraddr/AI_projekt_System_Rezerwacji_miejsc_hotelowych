@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\HotelWorkerAccess;
 use App\Enums\UserPermission;
 use App\Models\Hotel;
 use App\Models\User;
@@ -21,6 +22,44 @@ class HotelAccessService
     public function authorizeHotelAccess(User $user, Hotel $hotel): void
     {
         abort_unless($this->userCanManageHotel($user, $hotel), 403);
+    }
+
+    public function userCanAccess(User $user, Hotel $hotel, HotelWorkerAccess $access): bool
+    {
+        if ($user->hasPermission(UserPermission::Administrator)) {
+            return true;
+        }
+
+        return in_array($access->value, $this->workerPermissions($user, $hotel), true);
+    }
+
+    public function authorizeHotelCapability(User $user, Hotel $hotel, HotelWorkerAccess $access): void
+    {
+        abort_unless($this->userCanAccess($user, $hotel, $access), 403);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function workerPermissions(User $user, Hotel $hotel): array
+    {
+        if ($user->hasPermission(UserPermission::Administrator)) {
+            return HotelWorkerAccess::values();
+        }
+
+        $assignment = $user->workerHotels()->whereKey($hotel->id)->first();
+
+        if ($assignment === null) {
+            return [];
+        }
+
+        $permissions = $assignment->pivot->permissions;
+
+        if (! is_array($permissions) || $permissions === []) {
+            return HotelWorkerAccess::values();
+        }
+
+        return array_values(array_intersect($permissions, HotelWorkerAccess::values()));
     }
 
     /**

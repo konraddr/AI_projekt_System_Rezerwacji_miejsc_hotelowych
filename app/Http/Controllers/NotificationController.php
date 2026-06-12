@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -20,6 +21,13 @@ class NotificationController extends Controller
             ->paginate(20);
 
         return view('notifications.index', compact('notifications'));
+    }
+
+    public function unreadCount(): JsonResponse
+    {
+        return response()->json([
+            'count' => auth()->user()->unreadNotifications()->count(),
+        ]);
     }
 
     public function markAsRead(Request $request, string $notification): RedirectResponse
