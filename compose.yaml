@@ -6,33 +6,35 @@ services:
             args:
                 WWWGROUP: '${WWWGROUP:-1000}'
         image: sail-8.5/app
+        user: root
         volumes:
             - '.:/var/www/html'
             - 'composer-cache:/root/.composer'
         working_dir: /var/www/html
         environment:
-            WWWUSER: '${WWWUSER:-1000}'
-        command: >
-            bash -c "
-              mkdir -p storage &&
-              test -f .env || cp .env.example .env &&
+            COMPOSER_ALLOW_SUPERUSER: 1
+        entrypoint: ["/bin/bash", "-c"]
+        command:
+            - |
+              set -e
+              mkdir -p storage/framework/{sessions,views,cache/data} storage/logs bootstrap/cache
+              chmod -R 777 storage bootstrap/cache
+              test -f .env || cp .env.example .env
               if [ ! -f vendor/autoload.php ]; then
-                composer install --no-interaction --prefer-dist;
-              fi &&
+                composer install --no-interaction --prefer-dist --no-progress --optimize-autoloader
+              fi
               if ! grep -q '^APP_KEY=base64' .env 2>/dev/null; then
-                php artisan key:generate --force;
-              fi &&
+                php artisan key:generate --force --no-interaction
+              fi
               if [ -f storage/.docker-initialized ]; then
-                php artisan migrate --force;
+                php artisan migrate --force --no-interaction
               elif php artisan migrate:status --no-ansi 2>/dev/null | grep -q 'Ran'; then
-                php artisan migrate --force &&
-                touch storage/.docker-initialized;
+                php artisan migrate --force --no-interaction
+                touch storage/.docker-initialized
               else
-                php artisan migrate --seed --force &&
-                touch storage/.docker-initialized;
-              fi &&
-              exit 0
-            "
+                php artisan migrate --seed --force --no-interaction
+                touch storage/.docker-initialized
+              fi
         depends_on:
             pgsql:
                 condition: service_healthy
@@ -67,9 +69,11 @@ services:
         entrypoint: ["/bin/bash", "-c"]
         command:
             - |
-              if [ -n "$$WWWUSER" ]; then usermod -u $$WWWUSER sail; fi
+              set -e
+              if [ -n "$$WWWUSER" ]; then usermod -u $$WWWUSER sail 2>/dev/null || true; fi
               if [ ! -f public/build/manifest.json ]; then
-                npm ci && npm run build
+                npm ci --no-audit --no-fund --prefer-offline
+                npm run build
               fi
               exec /usr/local/bin/start-container
         networks:
@@ -98,8 +102,10 @@ services:
                 - '${DB_DATABASE:-laravel}'
                 - '-U'
                 - '${DB_USERNAME:-sail}'
-            retries: 3
-            timeout: 5s
+            interval: 3s
+            timeout: 3s
+            retries: 10
+            start_period: 5s
 
 networks:
     sail:

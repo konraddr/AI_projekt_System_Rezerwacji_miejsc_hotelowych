@@ -24,8 +24,10 @@ cd AI_projekt_System_Rezerwacji_miejsc_hotelowych
 docker compose up -d --build
 ```
 
-Pierwsze uruchomienie trwa kilka minut (build obrazu PHP, composer, migracje, npm).
-Kolejne uruchomienia: ok. 30 sekund.
+**Pierwszy raz** po klonie: ok. 5–10 min (build obrazu, composer, npm).  
+**Kolejne razy:** `docker compose up -d` — ok. 30 sekund.
+
+> Nie uruchamiaj jako `root`. Używaj zwykłego użytkownika WSL.
 
 Aplikacja: http://localhost  
 Login testowy: `test@example.com` / `password`
