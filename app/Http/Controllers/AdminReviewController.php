@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Review;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class AdminReviewController extends Controller
@@ -13,12 +14,20 @@ class AdminReviewController extends Controller
     {
         $this->authorize('moderate', Review::class);
 
-        $reviews = Review::query()
-            ->with(['user', 'hotel'])
-            ->withCount('reports')
+        $query = Review::query()
+            ->with(['user', 'hotel']);
+
+        if (Schema::hasColumn('reports', 'review_id')) {
+            $query->withCount('reports');
+        }
+
+        $reviews = $query
             ->when($request->query('filter') === 'banned', fn ($q) => $q->where('is_banned', true))
             ->when($request->query('filter') === 'visible', fn ($q) => $q->where('is_banned', false))
-            ->when($request->query('filter') === 'reported', fn ($q) => $q->whereHas('reports'))
+            ->when(
+                $request->query('filter') === 'reported' && Schema::hasColumn('reports', 'review_id'),
+                fn ($q) => $q->whereHas('reports')
+            )
             ->latest()
             ->paginate(20)
             ->withQueryString();

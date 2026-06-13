@@ -50,7 +50,7 @@
                             <td class="text-center">
                                 @if ($review->is_banned)
                                     <span class="badge bg-danger">Ukryta</span>
-                                @elseif ($review->reports_count > 0)
+                                @elseif (($review->reports_count ?? 0) > 0)
                                     <span class="badge bg-warning text-dark">Zgłoszona</span>
                                 @else
                                     <span class="badge bg-success">Widoczna</span>

@@ -49,8 +49,16 @@ Route::middleware('permission:0')->prefix('admin')->name('admin.')->group(functi
     Route::get('/', [AdminPanelController::class, 'index'])->name('index');
 
     Route::get('/hotels', [AdminHotelController::class, 'index'])->name('hotels.index');
+    Route::get('/hotels/create', [AdminHotelController::class, 'create'])->name('hotels.create');
+    Route::post('/hotels', [AdminHotelController::class, 'store'])->name('hotels.store');
+    Route::get('/hotels/{hotel}', [AdminHotelController::class, 'show'])->name('hotels.show');
+    Route::get('/hotels/{hotel}/edit', [AdminHotelController::class, 'edit'])->name('hotels.edit');
+    Route::put('/hotels/{hotel}', [AdminHotelController::class, 'update'])->name('hotels.update');
+    Route::delete('/hotels/{hotel}', [AdminHotelController::class, 'destroy'])->name('hotels.destroy');
 
     Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+    Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
+    Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
     Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');

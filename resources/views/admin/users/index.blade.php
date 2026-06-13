@@ -3,9 +3,12 @@
 @section('title', 'Zarządzanie użytkownikami')
 
 @section('admin-content')
-    <div class="mb-4">
-        <h1 class="h3 mb-1">Użytkownicy</h1>
-        <p class="text-muted mb-0">Pełne zarządzanie kontami użytkowników systemu.</p>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h1 class="h3 mb-1">Użytkownicy</h1>
+            <p class="text-muted mb-0">Pełne zarządzanie kontami użytkowników systemu.</p>
+        </div>
+        <a href="{{ route('manage.admin.users.create') }}" class="btn btn-primary">Dodaj użytkownika</a>
     </div>
 
     <div class="card border-0 shadow-sm">

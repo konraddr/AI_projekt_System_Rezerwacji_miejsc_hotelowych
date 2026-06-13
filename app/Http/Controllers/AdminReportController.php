@@ -8,6 +8,7 @@ use App\Models\Report;
 use App\Services\ReportStatusService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class AdminReportController extends Controller
@@ -20,8 +21,13 @@ class AdminReportController extends Controller
     {
         $this->authorize('moderate', Report::class);
 
-        $reports = Report::query()
-            ->with(['user', 'hotel', 'review.user'])
+        $query = Report::query()->with(['user', 'hotel']);
+
+        if (Schema::hasColumn('reports', 'review_id')) {
+            $query->with(['review.user']);
+        }
+
+        $reports = $query
             ->when($request->query('status'), fn ($q, $status) => $q->where('status', $status))
             ->latest()
             ->paginate(20)

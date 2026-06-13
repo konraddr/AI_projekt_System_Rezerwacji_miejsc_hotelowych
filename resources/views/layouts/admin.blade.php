@@ -29,6 +29,10 @@
                            class="list-group-item list-group-item-action {{ request()->routeIs('manage.admin.reviews.*') ? 'active' : '' }}">
                             Moderacja opinii
                         </a>
+                        <a href="{{ route('manage.amenities.index') }}"
+                           class="list-group-item list-group-item-action {{ request()->routeIs('manage.amenities.*') ? 'active' : '' }}">
+                            Udogodnienia
+                        </a>
                     </div>
                 </div>
             </aside>

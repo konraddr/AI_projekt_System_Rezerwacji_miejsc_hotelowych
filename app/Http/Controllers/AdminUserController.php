@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreAdminUserRequest;
 use App\Http\Requests\UpdateAdminUserRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +17,20 @@ class AdminUserController extends Controller
             ->paginate(20);
 
         return view('admin.users.index', compact('users'));
+    }
+
+    public function create(): View
+    {
+        return view('admin.users.create');
+    }
+
+    public function store(StoreAdminUserRequest $request): RedirectResponse
+    {
+        $user = User::create($request->validated());
+
+        return redirect()
+            ->route('manage.admin.users.edit', $user)
+            ->with('success', 'Użytkownik '.$user->email.' został utworzony.');
     }
 
     public function edit(User $user): View
