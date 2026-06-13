@@ -30,7 +30,8 @@ services:
               else
                 php artisan migrate --seed --force &&
                 touch storage/.docker-initialized;
-              fi
+              fi &&
+              exit 0
             "
         depends_on:
             pgsql:
@@ -68,7 +69,7 @@ services:
               if [ ! -f public/build/manifest.json ]; then
                 npm ci && npm run build;
               fi &&
-              /usr/bin/start-container
+              exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
             "
         networks:
             - sail
