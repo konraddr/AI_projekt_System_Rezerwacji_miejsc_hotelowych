@@ -12,33 +12,19 @@ AI_projekt_System_Rezerwacji_miejsc_hotelowych
 
 
 ## 2. Sklonuj repozytorium
-* Wpisz w terminalu:
->
-> git clone https://github.com/konraddr/AI_projekt_System_Rezerwacji_miejsc_hotelowych.git
->
-> cd AI_projekt_System_Rezerwacji_miejsc_hotelowych
->
-
-## 3. Skopiuj plik konfiguracyjny i pobierz paczki
-   * Wklej po kolei:
-> cp .env.example .env
-> 
-> docker run --rm -v "$(pwd):/var/www/html" -w /var/www/html laravelsail/php84-composer:latest composer install
->
-## 4. Odpal serwer
-   * Włączamy Dockera poleceniem Sail:
-   > ./vendor/bin/sail up -d
-## 5. Wgraj bazę danych i wygląd
-   Gdy serwer działa, wklej po kolei te 4 komendy, aby wszystko zainstalować:
-
->./vendor/bin/sail artisan key:generate
-
-> ./vendor/bin/sail artisan migrate 
-
->./vendor/bin/sail npm install
-
->./vendor/bin/sail npm run build
- 
+git clone https://github.com/konraddr/AI_projekt_System_Rezerwacji_miejsc_hotelowych.git
+cd AI_projekt_System_Rezerwacji_miejsc_hotelowych
+## 3. Uruchom projekt (jedna komenda)
+docker compose up -d --build
+Pierwsze uruchomienie trwa kilka minut (composer, migracje, npm).
+Aplikacja: http://localhost
+Login testowy: test@example.com / password
+## 4. Po aktualizacji kodu (git pull)
+git pull origin main
+docker compose up -d --build
+## 5. Zatrzymanie i reset
+# Zatrzymanie
+docker compose down
 Podział:
 
 ###  OSOBA 1: Konrad (Tech Lead - Moduł "Hotel, Pokoje i Mapa")
