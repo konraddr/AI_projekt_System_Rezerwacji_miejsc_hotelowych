@@ -1,13 +1,18 @@
 services:
     init:
-        image: laravelsail/php85-composer:latest
+        build:
+            context: ./docker/8.5
+            dockerfile: Dockerfile
+            args:
+                WWWGROUP: '${WWWGROUP:-1000}'
+        image: sail-8.5/app
         volumes:
             - '.:/var/www/html'
         working_dir: /var/www/html
         environment:
-            COMPOSER_ALLOW_SUPERUSER: 1
+            WWWUSER: '${WWWUSER:-1000}'
         command: >
-            sh -c "
+            bash -c "
               test -f .env || cp .env.example .env &&
               composer install --no-interaction --prefer-dist &&
               php artisan key:generate --force &&
