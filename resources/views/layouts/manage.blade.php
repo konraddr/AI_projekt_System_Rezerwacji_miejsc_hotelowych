@@ -13,14 +13,20 @@
                            class="list-group-item list-group-item-action {{ request()->routeIs('manage.hotels.index') ? 'active' : '' }}">
                             Moje hotele
                         </a>
-                        <a href="{{ route('manage.hotels.create') }}"
-                           class="list-group-item list-group-item-action {{ request()->routeIs('manage.hotels.create') ? 'active' : '' }}">
-                            Dodaj hotel
-                        </a>
+                        @if (auth()->user()->canCreateHotel())
+                            <a href="{{ route('manage.hotels.create') }}"
+                               class="list-group-item list-group-item-action {{ request()->routeIs('manage.hotels.create') ? 'active' : '' }}">
+                                Dodaj hotel
+                            </a>
+                        @endif
                         @if (auth()->user()->hasPermission(\App\Enums\UserPermission::Administrator))
                             <a href="{{ route('manage.amenities.index') }}"
                                class="list-group-item list-group-item-action {{ request()->routeIs('manage.amenities.*') ? 'active' : '' }}">
                                 Udogodnienia
+                            </a>
+                            <a href="{{ route('manage.admin.index') }}"
+                               class="list-group-item list-group-item-action {{ request()->routeIs('manage.admin.*') ? 'active' : '' }}">
+                                Panel administratora
                             </a>
                         @endif
                         <a href="{{ route('hotels.index') }}" class="list-group-item list-group-item-action">
