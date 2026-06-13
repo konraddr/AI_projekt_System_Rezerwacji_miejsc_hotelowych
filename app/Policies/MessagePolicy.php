@@ -2,19 +2,21 @@
 
 namespace App\Policies;
 
+use App\Models\Hotel;
 use App\Models\Message;
 use App\Models\User;
+use App\Services\HotelAccessService;
 
 class MessagePolicy
 {
-    public function viewAny(User $user): bool
+    public function viewAny(User $user, Hotel $hotel): bool
     {
-        return true;
+        return app(HotelAccessService::class)->userCanUseHotelChat($user, $hotel);
     }
 
-    public function create(User $user): bool
+    public function create(User $user, Hotel $hotel): bool
     {
-        return true;
+        return $this->viewAny($user, $hotel);
     }
 
     public function participate(User $user, Message $message): bool

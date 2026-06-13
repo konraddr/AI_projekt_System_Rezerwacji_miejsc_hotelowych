@@ -24,23 +24,24 @@ class HotelWorkerController extends Controller
 
     public function index(Hotel $hotel): View
     {
-        $this->hotelAccess->authorizeHotelCapability(auth()->user(), $hotel, HotelWorkerAccess::Workers);
+        $this->hotelAccess->authorizeWorkerRoleManagement(auth()->user(), $hotel);
 
         $workers = $this->hotelWorkerService->workersForHotel($hotel);
-        $accessOptions = HotelWorkerAccess::cases();
+        $accessOptions = $this->accessOptionsForActor(auth()->user(), $hotel);
 
         return view('hotel-workers.index', compact('hotel', 'workers', 'accessOptions'));
     }
 
     public function store(AttachHotelWorkerRequest $request, Hotel $hotel): RedirectResponse
     {
-        $this->hotelAccess->authorizeHotelCapability($request->user(), $hotel, HotelWorkerAccess::Workers);
+        $this->hotelAccess->authorizeWorkerRoleManagement($request->user(), $hotel);
 
         try {
             $this->hotelWorkerService->attachWorkerByEmail(
                 $hotel,
                 $request->validated('email'),
-                $request->validated('permissions')
+                $request->validated('permissions'),
+                $request->user()
             );
         } catch (InvalidArgumentException $exception) {
             return back()
@@ -53,13 +54,14 @@ class HotelWorkerController extends Controller
 
     public function update(UpdateHotelWorkerRequest $request, Hotel $hotel, User $user): RedirectResponse
     {
-        $this->hotelAccess->authorizeHotelCapability($request->user(), $hotel, HotelWorkerAccess::Workers);
+        $this->hotelAccess->authorizeWorkerRoleManagement($request->user(), $hotel);
 
         try {
             $this->hotelWorkerService->updateWorkerPermissions(
                 $hotel,
                 $user,
-                $request->validated('permissions')
+                $request->validated('permissions'),
+                $request->user()
             );
         } catch (InvalidArgumentException $exception) {
             return back()->with('error', $exception->getMessage());
@@ -70,14 +72,25 @@ class HotelWorkerController extends Controller
 
     public function destroy(Hotel $hotel, User $user): RedirectResponse
     {
-        $this->hotelAccess->authorizeHotelCapability(auth()->user(), $hotel, HotelWorkerAccess::Workers);
+        $this->hotelAccess->authorizeWorkerRoleManagement(auth()->user(), $hotel);
 
         try {
-            $this->hotelWorkerService->detachWorker($hotel, $user);
+            $this->hotelWorkerService->detachWorker($hotel, $user, auth()->user());
         } catch (InvalidArgumentException $exception) {
             return back()->with('error', $exception->getMessage());
         }
 
         return back()->with('success', 'Pracownik został usunięty z hotelu.');
+    }
+
+    /**
+     * @return list<HotelWorkerAccess>
+     */
+    private function accessOptionsForActor(User $actor, Hotel $hotel): array
+    {
+        return array_map(
+            fn (string $permission) => HotelWorkerAccess::from($permission),
+            $this->hotelAccess->assignableWorkerPermissionsFor($actor, $hotel)
+        );
     }
 }

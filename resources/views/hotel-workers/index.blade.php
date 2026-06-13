@@ -13,7 +13,7 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
         <div>
             <h1 class="h3 mb-1">Pracownicy: {{ $hotel->name }}</h1>
-            <p class="text-muted mb-0">Dodawaj pracowników po e-mailu i określaj ich uprawnienia w hotelu.</p>
+            <p class="text-muted mb-0">Zarządzaj pracownikami hotelu. Dostęp mają właściciel, administrator oraz pracownicy z uprawnieniem „Pracownicy”.</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
             @include('partials.hotel-owner-links', ['hotel' => $hotel])
@@ -36,9 +36,13 @@
                         <tbody>
                             @forelse ($workers as $worker)
                                 @php
-                                    $workerPermissions = is_array($worker->pivot->permissions) && $worker->pivot->permissions !== []
-                                        ? $worker->pivot->permissions
-                                        : \App\Enums\HotelWorkerAccess::values();
+                                    $isPrivilegedManager = auth()->user()->hasPermission(\App\Enums\UserPermission::Administrator)
+                                        || auth()->id() === $hotel->owner_id;
+                                    $canManageWorker = $worker->id !== $hotel->owner_id
+                                        && ($worker->id !== auth()->id() || $isPrivilegedManager);
+                                    $workerPermissions = $worker->id === $hotel->owner_id
+                                        ? array_map(fn ($access) => $access->value, \App\Enums\HotelWorkerAccess::cases())
+                                        : (is_array($worker->pivot->permissions) ? $worker->pivot->permissions : []);
                                 @endphp
                                 <tr>
                                     <td>
@@ -50,12 +54,15 @@
                                             @if ($worker->id === auth()->id())
                                                 <span class="badge bg-light text-dark border">Ty</span>
                                             @endif
+                                            @if ($worker->id === $hotel->owner_id)
+                                                <span class="badge bg-primary">Właściciel</span>
+                                            @endif
                                         </div>
                                         <div class="small text-muted">{{ $worker->email }}</div>
                                     </td>
                                     <td>
                                         <div class="d-flex flex-wrap gap-1">
-                                            @foreach ($accessOptions as $access)
+                                            @foreach (\App\Enums\HotelWorkerAccess::cases() as $access)
                                                 @if (in_array($access->value, $workerPermissions, true))
                                                     <span class="badge bg-light text-dark border">{{ $access->label() }}</span>
                                                 @endif
@@ -63,23 +70,30 @@
                                         </div>
                                     </td>
                                     <td class="text-end text-nowrap">
-                                        <button type="button"
-                                                class="btn btn-sm btn-outline-primary"
-                                                data-bs-toggle="collapse"
-                                                data-bs-target="#worker-permissions-{{ $worker->id }}">
-                                            Edytuj uprawnienia
-                                        </button>
-                                        @if ($workers->count() > 1)
-                                            <form action="{{ route('manage.hotels.workers.destroy', [$hotel, $worker]) }}"
-                                                  method="POST" class="d-inline"
-                                                  onsubmit="return confirm('Usunąć tego pracownika z hotelu?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger">Usuń</button>
-                                            </form>
+                                        @if ($canManageWorker)
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-primary"
+                                                    data-bs-toggle="collapse"
+                                                    data-bs-target="#worker-permissions-{{ $worker->id }}">
+                                                Edytuj uprawnienia
+                                            </button>
+                                            @if ($workers->count() > 1)
+                                                <form action="{{ route('manage.hotels.workers.destroy', [$hotel, $worker]) }}"
+                                                      method="POST" class="d-inline"
+                                                      onsubmit="return confirm('Usunąć tego pracownika z hotelu?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">Usuń</button>
+                                                </form>
+                                            @endif
+                                        @elseif ($worker->id === $hotel->owner_id)
+                                            <span class="small text-muted">Właściciel ma pełny dostęp</span>
+                                        @else
+                                            <span class="small text-muted">Brak uprawnień do edycji</span>
                                         @endif
                                     </td>
                                 </tr>
+                                @if ($canManageWorker)
                                 <tr class="collapse" id="worker-permissions-{{ $worker->id }}">
                                     <td colspan="3" class="bg-light">
                                         <form action="{{ route('manage.hotels.workers.update', [$hotel, $worker]) }}" method="POST">
@@ -94,6 +108,7 @@
                                         </form>
                                     </td>
                                 </tr>
+                                @endif
                             @empty
                                 <tr>
                                     <td colspan="3" class="text-center text-muted py-4">Brak pracowników.</td>

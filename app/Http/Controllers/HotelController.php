@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreHotelRequest;
 use App\Http\Requests\UpdateHotelRequest;
 use App\Enums\HotelWorkerAccess;
+use App\Enums\UserPermission;
 use App\Models\Amenity;
 use App\Models\Hotel;
 use App\Services\AmenityInheritanceService;
@@ -53,6 +54,7 @@ class HotelController extends Controller
         $validated = $request->validated();
 
         $hotel = Hotel::create([
+            'owner_id' => $request->user()->id,
             'name' => $validated['name'],
             'city' => $validated['city'],
             'address' => $validated['address'],
@@ -64,6 +66,10 @@ class HotelController extends Controller
         $hotel->workers()->attach($request->user()->id, [
             'permissions' => HotelWorkerAccess::values(),
         ]);
+
+        if ($request->user()->hasPermission(UserPermission::Client)) {
+            $request->user()->update(['permission' => UserPermission::Owner]);
+        }
 
         $amenityPrices = AmenityInheritanceService::parseAmenityPrices(
             $validated['amenities'] ?? null,
