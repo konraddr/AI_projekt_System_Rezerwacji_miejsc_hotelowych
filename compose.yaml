@@ -26,6 +26,10 @@ services:
               if ! grep -q '^APP_KEY=base64' .env 2>/dev/null; then
                 php artisan key:generate --force --no-interaction
               fi
+              if ! grep -qE '^VAPID_PUBLIC_KEY=.+$' .env 2>/dev/null; then
+                php artisan webpush:vapid --no-interaction
+              fi
+              php artisan config:clear --no-interaction
               if [ -f storage/.docker-initialized ]; then
                 php artisan migrate --force --no-interaction
               elif php artisan migrate:status --no-ansi 2>/dev/null | grep -q 'Ran'; then
