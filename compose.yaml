@@ -20,7 +20,7 @@ services:
               mkdir -p storage/framework/{sessions,views,cache/data} storage/logs bootstrap/cache
               chmod -R 777 storage bootstrap/cache
               test -f .env || cp .env.example .env
-              if [ ! -f vendor/autoload.php ]; then
+              if [ ! -f vendor/autoload.php ] || [ ! -d vendor/laravel-notification-channels/webpush ]; then
                 composer install --no-interaction --prefer-dist --no-progress --optimize-autoloader
               fi
               if ! grep -q '^APP_KEY=base64' .env 2>/dev/null; then
@@ -28,7 +28,9 @@ services:
               fi
 
               if ! grep -qE '^VAPID_PUBLIC_KEY=.+$' .env 2>/dev/null; then
-                php artisan webpush:vapid --no-interaction
+                if php artisan list --raw 2>/dev/null | grep -q '^webpush:vapid'; then
+                  php artisan webpush:vapid --no-interaction
+                fi
               fi
               php artisan config:clear --no-interaction
 
@@ -116,6 +118,22 @@ services:
             retries: 10
             start_period: 5s
 
+    pgadmin:
+        image: 'dpage/pgadmin4:latest'
+        ports:
+            - '${FORWARD_PGADMIN_PORT:-5050}:80'
+        environment:
+            PGADMIN_DEFAULT_EMAIL: '${PGADMIN_EMAIL:-admin@local.dev}'
+            PGADMIN_DEFAULT_PASSWORD: '${PGADMIN_PASSWORD:-admin}'
+            PGADMIN_CONFIG_SERVER_MODE: 'False'
+        volumes:
+            - 'sail-pgadmin:/var/lib/pgadmin'
+        networks:
+            - sail
+        depends_on:
+            pgsql:
+                condition: service_healthy
+
 networks:
     sail:
         driver: bridge
@@ -124,4 +142,6 @@ volumes:
     sail-pgsql:
         driver: local
     composer-cache:
+        driver: local
+    sail-pgadmin:
         driver: local

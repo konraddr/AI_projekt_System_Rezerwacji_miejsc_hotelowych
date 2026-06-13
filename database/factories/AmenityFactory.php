@@ -13,17 +13,17 @@ class AmenityFactory extends Factory
     protected $model = Amenity::class;
 
     /**
-     * @var list<array{name: string, icon: string}>
+     * @var list<string>
      */
     private const AMENITIES = [
-        ['name' => 'Wi-Fi', 'icon' => 'wifi'],
-        ['name' => 'Basen', 'icon' => 'pool'],
-        ['name' => 'Parking', 'icon' => 'parking'],
-        ['name' => 'Klimatyzacja', 'icon' => 'ac'],
-        ['name' => 'Strefa SPA', 'icon' => 'spa'],
-        ['name' => 'Sauna', 'icon' => 'sauna'],
-        ['name' => 'Restauracja', 'icon' => 'restaurant'],
-        ['name' => 'Siłownia', 'icon' => 'gym'],
+        'Wi-Fi',
+        'Basen',
+        'Parking',
+        'Klimatyzacja',
+        'Strefa SPA',
+        'Sauna',
+        'Restauracja',
+        'Siłownia',
     ];
 
     /**
@@ -33,6 +33,8 @@ class AmenityFactory extends Factory
      */
     public function definition(): array
     {
-        return fake()->randomElement(self::AMENITIES);
+        return [
+            'name' => fake()->randomElement(self::AMENITIES),
+        ];
     }
 }

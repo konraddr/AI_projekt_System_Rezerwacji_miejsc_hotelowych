@@ -13,21 +13,18 @@ class AmenitySeeder extends Seeder
     public function run(): void
     {
         $amenities = [
-            ['name' => 'Wi-Fi', 'icon' => 'wifi'],
-            ['name' => 'Basen', 'icon' => 'pool'],
-            ['name' => 'Parking', 'icon' => 'parking'],
-            ['name' => 'Klimatyzacja', 'icon' => 'ac'],
-            ['name' => 'Strefa SPA', 'icon' => 'spa'],
-            ['name' => 'Sauna', 'icon' => 'sauna'],
-            ['name' => 'Restauracja', 'icon' => 'restaurant'],
-            ['name' => 'Siłownia', 'icon' => 'gym'],
+            'Wi-Fi',
+            'Basen',
+            'Parking',
+            'Klimatyzacja',
+            'Strefa SPA',
+            'Sauna',
+            'Restauracja',
+            'Siłownia',
         ];
 
-        foreach ($amenities as $amenity) {
-            Amenity::firstOrCreate(
-                ['name' => $amenity['name']],
-                ['icon' => $amenity['icon']]
-            );
+        foreach ($amenities as $name) {
+            Amenity::firstOrCreate(['name' => $name]);
         }
     }
 }
