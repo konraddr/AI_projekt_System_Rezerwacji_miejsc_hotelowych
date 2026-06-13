@@ -18,7 +18,6 @@ class StoreAmenityRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255', 'unique:amenities,name'],
-            'icon' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

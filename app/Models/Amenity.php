@@ -11,7 +11,7 @@ class Amenity extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'icon'];
+    protected $fillable = ['name'];
 
     public function hotels(): BelongsToMany
     {

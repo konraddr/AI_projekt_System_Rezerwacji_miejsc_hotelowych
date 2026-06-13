@@ -26,7 +26,6 @@ class UpdateAmenityRequest extends FormRequest
                 'max:255',
                 Rule::unique('amenities', 'name')->ignore($amenity?->id),
             ],
-            'icon' => ['nullable', 'string', 'max:255'],
         ];
     }
 }
