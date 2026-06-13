@@ -26,11 +26,32 @@ class HotelAccessService
 
     public function userCanAccess(User $user, Hotel $hotel, HotelWorkerAccess $access): bool
     {
-        if ($user->hasPermission(UserPermission::Administrator)) {
+        if ($access === HotelWorkerAccess::Workers) {
+            return $this->userCanManageWorkerRoles($user, $hotel);
+        }
+
+        if ($user->hasPermission(UserPermission::Administrator) || $this->userIsHotelOwner($user, $hotel)) {
             return true;
         }
 
         return in_array($access->value, $this->workerPermissions($user, $hotel), true);
+    }
+
+    public function userCanUseHotelChat(User $user, Hotel $hotel): bool
+    {
+        if ($user->isBanned()) {
+            return false;
+        }
+
+        if ($user->hasPermission(UserPermission::Administrator) || $this->userIsHotelOwner($user, $hotel)) {
+            return true;
+        }
+
+        if (! $this->userCanManageHotel($user, $hotel)) {
+            return true;
+        }
+
+        return $this->userCanAccess($user, $hotel, HotelWorkerAccess::Chat);
     }
 
     public function authorizeHotelCapability(User $user, Hotel $hotel, HotelWorkerAccess $access): void
@@ -38,10 +59,54 @@ class HotelAccessService
         abort_unless($this->userCanAccess($user, $hotel, $access), 403);
     }
 
+    public function userIsHotelOwner(User $user, Hotel $hotel): bool
+    {
+        return $hotel->owner_id === $user->id;
+    }
+
+    public function userCanManageWorkerRoles(User $user, Hotel $hotel): bool
+    {
+        if ($user->hasPermission(UserPermission::Administrator) || $this->userIsHotelOwner($user, $hotel)) {
+            return true;
+        }
+
+        return in_array(HotelWorkerAccess::Workers->value, $this->pivotPermissions($user, $hotel), true);
+    }
+
+    public function authorizeWorkerRoleManagement(User $user, Hotel $hotel): void
+    {
+        abort_unless($this->userCanManageWorkerRoles($user, $hotel), 403);
+    }
+
+    public function canAssignWorkerManagementPermission(User $user, Hotel $hotel): bool
+    {
+        return in_array(
+            HotelWorkerAccess::Workers->value,
+            $this->assignableWorkerPermissionsFor($user, $hotel),
+            true
+        );
+    }
+
     /**
      * @return list<string>
      */
-    public function workerPermissions(User $user, Hotel $hotel): array
+    public function assignableWorkerPermissionsFor(User $actor, Hotel $hotel): array
+    {
+        if ($actor->hasPermission(UserPermission::Administrator) || $this->userIsHotelOwner($actor, $hotel)) {
+            return HotelWorkerAccess::values();
+        }
+
+        if (! $this->userCanManageWorkerRoles($actor, $hotel)) {
+            return [];
+        }
+
+        return $this->pivotPermissions($actor, $hotel);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function pivotPermissions(User $user, Hotel $hotel): array
     {
         if ($user->hasPermission(UserPermission::Administrator)) {
             return HotelWorkerAccess::values();
@@ -56,10 +121,25 @@ class HotelAccessService
         $permissions = $assignment->pivot->permissions;
 
         if (! is_array($permissions) || $permissions === []) {
-            return HotelWorkerAccess::values();
+            return [];
         }
 
         return array_values(array_intersect($permissions, HotelWorkerAccess::values()));
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function workerPermissions(User $user, Hotel $hotel): array
+    {
+        if ($user->hasPermission(UserPermission::Administrator) || $this->userIsHotelOwner($user, $hotel)) {
+            return HotelWorkerAccess::values();
+        }
+
+        return array_values(array_filter(
+            $this->pivotPermissions($user, $hotel),
+            fn (string $permission) => $permission !== HotelWorkerAccess::Workers->value
+        ));
     }
 
     /**

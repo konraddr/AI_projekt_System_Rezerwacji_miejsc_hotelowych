@@ -18,7 +18,7 @@ class HotelPhotoController extends Controller
 
     public function index(Hotel $hotel): View
     {
-        $this->authorize('viewAny', Photo::class);
+        $this->authorize('viewAny', [Photo::class, $hotel]);
 
         $photos = $hotel->photos()->get();
 
@@ -27,7 +27,7 @@ class HotelPhotoController extends Controller
 
     public function store(StorePhotoRequest $request, Hotel $hotel): RedirectResponse
     {
-        $this->authorize('create', Photo::class);
+        $this->authorize('create', [Photo::class, $hotel]);
 
         $validated = $request->validated();
         $nextOrder = $hotel->photos()->max('order');
@@ -50,7 +50,7 @@ class HotelPhotoController extends Controller
     public function update(UpdateHotelPhotoRequest $request, Hotel $hotel, Photo $photo): RedirectResponse
     {
         $this->ensurePhotoBelongsToHotel($hotel, $photo);
-        $this->authorize('update', $photo);
+        $this->authorize('update', [$photo, $hotel]);
 
         $photo->update([
             'order' => (int) $request->validated('order'),
@@ -64,7 +64,7 @@ class HotelPhotoController extends Controller
     public function destroy(Hotel $hotel, Photo $photo): RedirectResponse
     {
         $this->ensurePhotoBelongsToHotel($hotel, $photo);
-        $this->authorize('delete', $photo);
+        $this->authorize('delete', [$photo, $hotel]);
 
         $this->photoUploadService->delete($photo);
 

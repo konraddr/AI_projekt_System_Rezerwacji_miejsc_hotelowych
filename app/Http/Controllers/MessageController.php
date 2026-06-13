@@ -20,7 +20,7 @@ class MessageController extends Controller
 
     public function chat(Hotel $hotel): View
     {
-        $this->authorize('viewAny', Message::class);
+        $this->authorize('viewAny', [Message::class, $hotel]);
 
         $receivers = $this->chatRecipientService->receiversForHotel($hotel, auth()->user());
 
@@ -33,7 +33,7 @@ class MessageController extends Controller
 
     public function index(Request $request, Hotel $hotel): JsonResponse
     {
-        $this->authorize('viewAny', Message::class);
+        $this->authorize('viewAny', [Message::class, $hotel]);
 
         $query = Message::query()
             ->where('hotel_id', $hotel->id)
@@ -61,7 +61,7 @@ class MessageController extends Controller
 
     public function store(StoreMessageRequest $request, Hotel $hotel): JsonResponse
     {
-        $this->authorize('create', Message::class);
+        $this->authorize('create', [Message::class, $hotel]);
 
         $message = Message::create([
             'sender_id' => $request->user()->id,
