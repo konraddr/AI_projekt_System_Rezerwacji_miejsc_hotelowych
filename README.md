@@ -12,19 +12,47 @@ AI_projekt_System_Rezerwacji_miejsc_hotelowych
 
 
 ## 2. Sklonuj repozytorium
+
+```bash
 git clone https://github.com/konraddr/AI_projekt_System_Rezerwacji_miejsc_hotelowych.git
 cd AI_projekt_System_Rezerwacji_miejsc_hotelowych
-## 3. Uruchom projekt (jedna komenda)
+```
+
+## 3. Uruchom projekt
+
+```bash
 docker compose up -d --build
-Pierwsze uruchomienie trwa kilka minut (composer, migracje, npm).
-Aplikacja: http://localhost
-Login testowy: test@example.com / password
-## 4. Po aktualizacji kodu (git pull)
+```
+
+Pierwsze uruchomienie trwa kilka minut (build obrazu PHP, composer, migracje, npm).
+Kolejne uruchomienia: ok. 30 sekund.
+
+Aplikacja: http://localhost  
+Login testowy: `test@example.com` / `password`
+
+## 4. Codzienne użycie
+
+```bash
+docker compose up -d
+docker compose down
+```
+
+## 5. Po aktualizacji kodu 
+
+```bash
 git pull origin main
 docker compose up -d --build
-## 5. Zatrzymanie i reset
-# Zatrzymanie
-docker compose down
+```
+
+## 6. Pełny reset 
+
+```bash
+docker compose down -v
+rm -rf vendor node_modules public/build .env storage/.docker-initialized
+docker compose up -d --build
+```
+
+
 Podział:
 
 ###  OSOBA 1: Konrad (Tech Lead - Moduł "Hotel, Pokoje i Mapa")
