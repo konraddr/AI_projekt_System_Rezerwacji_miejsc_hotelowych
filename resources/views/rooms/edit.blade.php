@@ -63,17 +63,6 @@
 
                         <div class="mb-4">
                             <label class="form-label fw-semibold">Udogodnienia pokoju</label>
-                            @php
-                                $selectedAmenities = old('amenities', $room->roomAmenities
-                                    ->map(fn ($item) => $item->hotelAmenity?->amenity_id)
-                                    ->filter()
-                                    ->all());
-                                $amenityPrices = old('amenity_prices', $room->roomAmenities
-                                    ->filter(fn ($item) => $item->hotelAmenity?->amenity_id)
-                                    ->mapWithKeys(fn ($item) => [
-                                        $item->hotelAmenity->amenity_id => $item->price,
-                                    ])->all());
-                            @endphp
                             @include('partials.amenities-selector', [
                                 'amenities' => $amenities,
                                 'selectedAmenities' => $selectedAmenities,

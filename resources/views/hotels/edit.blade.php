@@ -62,12 +62,6 @@
 
                         <div class="mb-4">
                             <label class="form-label fw-semibold">Udogodnienia hotelu</label>
-                            @php
-                                $selectedAmenities = old('amenities', $hotel->amenities->pluck('id')->all());
-                                $amenityPrices = old('amenity_prices', $hotel->amenities->mapWithKeys(
-                                    fn ($amenity) => [$amenity->id => $amenity->pivot->price]
-                                )->all());
-                            @endphp
                             @include('partials.amenities-selector', [
                                 'amenities' => $amenities,
                                 'selectedAmenities' => $selectedAmenities,

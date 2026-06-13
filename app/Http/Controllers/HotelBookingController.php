@@ -28,7 +28,9 @@ class HotelBookingController extends Controller
             ->bookingsForHotel($hotel)
             ->each(fn (Booking $booking) => $this->bookingService->completeIfStayEnded($booking));
 
-        return view('bookings.manage.index', compact('hotel', 'bookings'));
+        $ownerLinks = $this->hotelAccess->ownerPanelLinks(auth()->user(), $hotel);
+
+        return view('bookings.manage.index', compact('hotel', 'bookings', 'ownerLinks'));
     }
 
     public function show(Hotel $hotel, Booking $booking): View
@@ -39,11 +41,14 @@ class HotelBookingController extends Controller
         $booking->load([
             'user',
             'room.hotel',
+            'room.roomAmenities.hotelAmenity.amenity',
             'extraAmenities.hotelAmenity.amenity',
         ]);
 
         $this->bookingService->completeIfStayEnded($booking);
 
-        return view('bookings.manage.show', compact('hotel', 'booking'));
+        $ownerLinks = $this->hotelAccess->ownerPanelLinks(auth()->user(), $hotel);
+
+        return view('bookings.manage.show', compact('hotel', 'booking', 'ownerLinks'));
     }
 }

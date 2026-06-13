@@ -73,7 +73,17 @@ class RoomController extends Controller
         $room->load('roomAmenities.hotelAmenity');
         $amenities = $hotel->amenities()->orderBy('name')->get();
 
-        return view('rooms.edit', compact('hotel', 'room', 'amenities'));
+        $selectedAmenities = old('amenities', $room->roomAmenities
+            ->map(fn ($item) => $item->hotelAmenity?->amenity_id)
+            ->filter()
+            ->all());
+        $amenityPrices = old('amenity_prices', $room->roomAmenities
+            ->filter(fn ($item) => $item->hotelAmenity?->amenity_id)
+            ->mapWithKeys(fn ($item) => [
+                $item->hotelAmenity->amenity_id => $item->price,
+            ])->all());
+
+        return view('rooms.edit', compact('hotel', 'room', 'amenities', 'selectedAmenities', 'amenityPrices'));
     }
 
     public function update(UpdateRoomRequest $request, Hotel $hotel, Room $room)

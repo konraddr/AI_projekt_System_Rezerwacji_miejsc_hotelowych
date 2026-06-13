@@ -16,7 +16,7 @@
             <p class="text-muted mb-0">Przegląd rezerwacji w Twoim obiekcie.</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
-            @include('partials.hotel-owner-links', ['hotel' => $hotel])
+            @include('partials.hotel-owner-links', ['hotel' => $hotel, 'links' => $ownerLinks])
         </div>
     </div>
 

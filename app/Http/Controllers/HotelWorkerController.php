@@ -29,7 +29,9 @@ class HotelWorkerController extends Controller
         $workers = $this->hotelWorkerService->workersForHotel($hotel);
         $accessOptions = $this->accessOptionsForActor(auth()->user(), $hotel);
 
-        return view('hotel-workers.index', compact('hotel', 'workers', 'accessOptions'));
+        $ownerLinks = $this->hotelAccess->ownerPanelLinks(auth()->user(), $hotel);
+
+        return view('hotel-workers.index', compact('hotel', 'workers', 'accessOptions', 'ownerLinks'));
     }
 
     public function store(AttachHotelWorkerRequest $request, Hotel $hotel): RedirectResponse

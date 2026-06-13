@@ -1,10 +1,3 @@
-@php
-    $hotelReviews = $hotel->reviews()->visible()->with('user')->latest()->get();
-    $userReview = auth()->check()
-        ? $hotel->reviews()->where('user_id', auth()->id())->first()
-        : null;
-@endphp
-
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-body">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3 border-bottom pb-2">

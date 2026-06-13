@@ -143,6 +143,21 @@ class HotelAccessService
     }
 
     /**
+     * @return array{bookings: bool, workers: bool, rooms: bool, photos: bool, chat: bool, hotel: bool}
+     */
+    public function ownerPanelLinks(User $user, Hotel $hotel): array
+    {
+        return [
+            'bookings' => $this->userCanAccess($user, $hotel, HotelWorkerAccess::Bookings),
+            'workers' => $this->userCanManageWorkerRoles($user, $hotel),
+            'rooms' => $this->userCanAccess($user, $hotel, HotelWorkerAccess::Rooms),
+            'photos' => $this->userCanAccess($user, $hotel, HotelWorkerAccess::Photos),
+            'chat' => $this->userCanAccess($user, $hotel, HotelWorkerAccess::Chat),
+            'hotel' => $this->userCanAccess($user, $hotel, HotelWorkerAccess::Hotel),
+        ];
+    }
+
+    /**
      * @return Collection<int, Hotel>
      */
     public function hotelsForUser(User $user): Collection

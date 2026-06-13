@@ -8,7 +8,9 @@
             <h1 class="h3 mb-1">Moje hotele</h1>
             <p class="text-muted mb-0">Zarządzaj obiektami, pokojami i udogodnieniami.</p>
         </div>
-        <a href="{{ route('manage.hotels.create') }}" class="btn btn-primary">Dodaj hotel</a>
+        @if (auth()->user()->canCreateHotel())
+            <a href="{{ route('manage.hotels.create') }}" class="btn btn-primary">Dodaj hotel</a>
+        @endif
     </div>
 
     <div class="card border-0 shadow-sm">
@@ -33,8 +35,11 @@
                             <td class="text-end">
                                 <div class="d-inline-flex gap-1 flex-wrap justify-content-end">
                                     <a href="{{ route('hotels.show', $hotel) }}" class="btn btn-sm btn-outline-secondary">Podgląd</a>
-                                    @include('partials.hotel-owner-links', ['hotel' => $hotel])
-                                    @if (app(\App\Services\HotelAccessService::class)->userCanAccess(auth()->user(), $hotel, \App\Enums\HotelWorkerAccess::Hotel))
+                                    @include('partials.hotel-owner-links', [
+                                        'hotel' => $hotel,
+                                        'links' => $ownerLinksByHotel[$hotel->id],
+                                    ])
+                                    @if ($ownerLinksByHotel[$hotel->id]['hotel'])
                                         <a href="{{ route('manage.hotels.edit', $hotel) }}" class="btn btn-sm btn-outline-warning">Edytuj</a>
                                         @include('partials.delete-modal', [
                                             'modalId' => 'deleteHotel'.$hotel->id,
@@ -50,7 +55,9 @@
                         <tr>
                             <td colspan="5" class="text-center text-muted py-5">
                                 <p class="mb-3">Nie masz jeszcze żadnych hoteli.</p>
-                                <a href="{{ route('manage.hotels.create') }}" class="btn btn-primary btn-sm">Dodaj pierwszy hotel</a>
+                                @if (auth()->user()->canCreateHotel())
+                                    <a href="{{ route('manage.hotels.create') }}" class="btn btn-primary btn-sm">Dodaj pierwszy hotel</a>
+                                @endif
                             </td>
                         </tr>
                     @endforelse

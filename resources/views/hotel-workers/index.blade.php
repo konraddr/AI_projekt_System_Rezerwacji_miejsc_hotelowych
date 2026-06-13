@@ -16,7 +16,7 @@
             <p class="text-muted mb-0">Zarządzaj pracownikami hotelu. Dostęp mają właściciel, administrator oraz pracownicy z uprawnieniem „Pracownicy”.</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
-            @include('partials.hotel-owner-links', ['hotel' => $hotel])
+            @include('partials.hotel-owner-links', ['hotel' => $hotel, 'links' => $ownerLinks])
         </div>
     </div>
 

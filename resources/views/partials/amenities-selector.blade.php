@@ -8,7 +8,11 @@
         @php
             $isChecked = in_array($amenity->id, $selectedAmenities, false)
                 || in_array((string) $amenity->id, $selectedAmenities, true);
-            $priceValue = old('amenity_prices.'.$amenity->id, $amenityPrices[$amenity->id] ?? 0);
+            $inheritedPrice = isset($amenity->pivot) ? (float) $amenity->pivot->price : 0.0;
+            $priceValue = old(
+                'amenity_prices.'.$amenity->id,
+                $amenityPrices[$amenity->id] ?? $inheritedPrice
+            );
         @endphp
         <div class="list-group-item">
             <div class="row align-items-center g-2">
