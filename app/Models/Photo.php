@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Support\Facades\Storage;
 
 class Photo extends Model
 {
@@ -44,6 +43,6 @@ class Photo extends Model
 
     public function url(): string
     {
-        return Storage::disk(config('photos.disk', 'public'))->url($this->storagePath());
+        return route('photos.show', $this);
     }
 }

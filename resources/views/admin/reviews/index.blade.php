@@ -1,24 +1,26 @@
-@extends('layouts.manage')
+@extends('layouts.admin')
 
 @section('title', 'Moderacja opinii')
 
-@section('manage-content')
+@section('admin-content')
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
         <div>
             <h1 class="h3 mb-1">Moderacja opinii</h1>
             <p class="text-muted mb-0">Ukrywaj lub przywracaj komentarze (flaga is_banned).</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
+            <a href="{{ route('manage.admin.index') }}" class="btn btn-outline-secondary">Przegląd</a>
             <a href="{{ route('manage.admin.reports.index') }}" class="btn btn-outline-danger">Panel zgłoszeń</a>
-            <a href="{{ route('manage.reports.index') }}" class="btn btn-outline-secondary">Moje zgłoszenia</a>
         </div>
     </div>
 
-    <div class="btn-group mb-4" role="group">
+    <div class="btn-group mb-4 flex-wrap" role="group">
         <a href="{{ route('manage.admin.reviews.index') }}"
            class="btn btn-sm {{ ! request('filter') ? 'btn-primary' : 'btn-outline-primary' }}">Wszystkie</a>
         <a href="{{ route('manage.admin.reviews.index', ['filter' => 'visible']) }}"
            class="btn btn-sm {{ request('filter') === 'visible' ? 'btn-primary' : 'btn-outline-primary' }}">Widoczne</a>
+        <a href="{{ route('manage.admin.reviews.index', ['filter' => 'reported']) }}"
+           class="btn btn-sm {{ request('filter') === 'reported' ? 'btn-primary' : 'btn-outline-primary' }}">Zgłoszone</a>
         <a href="{{ route('manage.admin.reviews.index', ['filter' => 'banned']) }}"
            class="btn btn-sm {{ request('filter') === 'banned' ? 'btn-primary' : 'btn-outline-primary' }}">Ukryte</a>
     </div>
@@ -48,6 +50,8 @@
                             <td class="text-center">
                                 @if ($review->is_banned)
                                     <span class="badge bg-danger">Ukryta</span>
+                                @elseif ($review->reports_count > 0)
+                                    <span class="badge bg-warning text-dark">Zgłoszona</span>
                                 @else
                                     <span class="badge bg-success">Widoczna</span>
                                 @endif
@@ -57,6 +61,9 @@
                                     <form action="{{ route('manage.admin.reviews.unban', $review) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('PATCH')
+                                        @if (request('filter'))
+                                            <input type="hidden" name="filter" value="{{ request('filter') }}">
+                                        @endif
                                         <button type="submit" class="btn btn-sm btn-outline-success">Przywróć</button>
                                     </form>
                                 @else
@@ -64,6 +71,9 @@
                                           onsubmit="return confirm('Ukryć tę opinię na profilu publicznym?');">
                                         @csrf
                                         @method('PATCH')
+                                        @if (request('filter'))
+                                            <input type="hidden" name="filter" value="{{ request('filter') }}">
+                                        @endif
                                         <button type="submit" class="btn btn-sm btn-outline-danger">Ukryj</button>
                                     </form>
                                 @endif

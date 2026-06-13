@@ -27,6 +27,24 @@
                         <form action="{{ route('manage.hotels.reviews.store', $hotel) }}" method="POST">
                             @csrf
 
+                            @unless ($existingReview)
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold" for="booking_id">Rezerwacja</label>
+                                    <select name="booking_id" id="booking_id"
+                                            class="form-select @error('booking_id') is-invalid @enderror" required>
+                                        <option value="" disabled @selected(old('booking_id') === null)>Wybierz…</option>
+                                        @foreach ($eligibleBookings as $booking)
+                                            <option value="{{ $booking->id }}" @selected((int) old('booking_id') === $booking->id)>
+                                                #{{ $booking->id }} — {{ $booking->room->name }}
+                                                ({{ $booking->check_in->format('d.m.Y') }}–{{ $booking->check_out->format('d.m.Y') }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('booking_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <div class="form-text">Opinię można dodać tylko po opłaconym i zakończonym pobycie.</div>
+                                </div>
+                            @endunless
+
                             <div class="mb-3">
                                 <label class="form-label fw-semibold" for="rating">Ocena</label>
                                 <select name="rating" id="rating" class="form-select @error('rating') is-invalid @enderror" required>

@@ -29,7 +29,14 @@
                     <span class="badge bg-warning text-dark">{{ $review->rating }} / 5</span>
                 </div>
                 <p class="mb-1 small text-muted">{{ $review->created_at->format('d.m.Y') }}</p>
-                <p class="mb-0">{{ $review->comment }}</p>
+                <p class="mb-2">{{ $review->comment }}</p>
+                @if (! auth()->check() || auth()->id() !== $review->user_id)
+                    <form action="{{ route('hotels.reviews.report', [$hotel, $review]) }}" method="POST"
+                          onsubmit="return confirm('Zgłosić tę opinię administratorowi?');">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Zgłoś</button>
+                    </form>
+                @endif
             </div>
         @empty
             <p class="text-muted mb-0">Brak opinii. Bądź pierwszą osobą, która oceni ten obiekt.</p>
@@ -40,7 +47,7 @@
                 <a href="{{ route('manage.hotels.chat', $hotel) }}" class="btn btn-sm btn-outline-primary">
                     Czat z hotelem
                 </a>
-                <a href="{{ route('manage.reports.create', ['prefill' => 'Hotel: '.$hotel->name.' ('.$hotel->city.')']) }}"
+                <a href="{{ route('manage.reports.create', ['hotel' => $hotel->id, 'prefill' => 'Hotel: '.$hotel->name.' ('.$hotel->city.')']) }}"
                    class="btn btn-sm btn-outline-secondary">Zgłoś problem z tym hotelem</a>
             </div>
         @endauth

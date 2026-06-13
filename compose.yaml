@@ -1,10 +1,53 @@
 services:
-    laravel.test:
+    init:
         build:
-            context: ./vendor/laravel/sail/runtimes/8.5
+            context: ./docker/8.5
             dockerfile: Dockerfile
             args:
-                WWWGROUP: '${WWWGROUP}'
+                WWWGROUP: '${WWWGROUP:-1000}'
+        image: sail-8.5/app
+        user: root
+        volumes:
+            - '.:/var/www/html'
+            - 'composer-cache:/root/.composer'
+        working_dir: /var/www/html
+        environment:
+            COMPOSER_ALLOW_SUPERUSER: 1
+        entrypoint: ["/bin/bash", "-c"]
+        command:
+            - |
+              set -e
+              mkdir -p storage/framework/{sessions,views,cache/data} storage/logs bootstrap/cache
+              chmod -R 777 storage bootstrap/cache
+              test -f .env || cp .env.example .env
+              if [ ! -f vendor/autoload.php ]; then
+                composer install --no-interaction --prefer-dist --no-progress --optimize-autoloader
+              fi
+              if ! grep -q '^APP_KEY=base64' .env 2>/dev/null; then
+                php artisan key:generate --force --no-interaction
+              fi
+              if [ -f storage/.docker-initialized ]; then
+                php artisan migrate --force --no-interaction
+              elif php artisan migrate:status --no-ansi 2>/dev/null | grep -q 'Ran'; then
+                php artisan migrate --force --no-interaction
+                touch storage/.docker-initialized
+              else
+                php artisan migrate --seed --force --no-interaction
+                touch storage/.docker-initialized
+              fi
+              php artisan storage:link --force --no-interaction 2>/dev/null || true
+        depends_on:
+            pgsql:
+                condition: service_healthy
+        networks:
+            - sail
+
+    laravel.test:
+        build:
+            context: ./docker/8.5
+            dockerfile: Dockerfile
+            args:
+                WWWGROUP: '${WWWGROUP:-1000}'
         image: sail-8.5/app
         extra_hosts:
             - 'host.docker.internal:host-gateway'
@@ -12,29 +55,43 @@ services:
             - '${APP_PORT:-80}:80'
             - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
         environment:
-            WWWUSER: '${WWWUSER}'
+            WWWUSER: '${WWWUSER:-1000}'
             LARAVEL_SAIL: 1
             XDEBUG_MODE: '${SAIL_XDEBUG_MODE:-off}'
             XDEBUG_CONFIG: '${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}'
             IGNITION_LOCAL_SITES_PATH: '${PWD}'
         volumes:
             - '.:/var/www/html'
+        depends_on:
+            init:
+                condition: service_completed_successfully
+            pgsql:
+                condition: service_healthy
+        entrypoint: ["/bin/bash", "-c"]
+        command:
+            - |
+              set -e
+              if [ -n "$$WWWUSER" ]; then usermod -u $$WWWUSER sail 2>/dev/null || true; fi
+              if [ ! -f public/build/manifest.json ]; then
+                npm ci --no-audit --no-fund --prefer-offline
+                npm run build
+              fi
+              exec /usr/local/bin/start-container
         networks:
             - sail
-        depends_on:
-            - pgsql
+
     pgsql:
         image: 'postgres:18-alpine'
         ports:
             - '${FORWARD_DB_PORT:-5432}:5432'
         environment:
-            PGPASSWORD: '${DB_PASSWORD:-secret}'
-            POSTGRES_DB: '${DB_DATABASE}'
-            POSTGRES_USER: '${DB_USERNAME}'
-            POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
+            PGPASSWORD: '${DB_PASSWORD:-password}'
+            POSTGRES_DB: '${DB_DATABASE:-laravel}'
+            POSTGRES_USER: '${DB_USERNAME:-sail}'
+            POSTGRES_PASSWORD: '${DB_PASSWORD:-password}'
         volumes:
             - 'sail-pgsql:/var/lib/postgresql'
-            - './vendor/laravel/sail/database/pgsql/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql'
+            - './docker/pgsql/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql'
         networks:
             - sail
         healthcheck:
@@ -43,14 +100,20 @@ services:
                 - pg_isready
                 - '-q'
                 - '-d'
-                - '${DB_DATABASE}'
+                - '${DB_DATABASE:-laravel}'
                 - '-U'
-                - '${DB_USERNAME}'
-            retries: 3
-            timeout: 5s
+                - '${DB_USERNAME:-sail}'
+            interval: 3s
+            timeout: 3s
+            retries: 10
+            start_period: 5s
+
 networks:
     sail:
         driver: bridge
+
 volumes:
     sail-pgsql:
+        driver: local
+    composer-cache:
         driver: local

@@ -41,6 +41,11 @@
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('manage.hotels.index') }}">Panel hoteli</a>
                             </li>
+                            @if (auth()->user()->hasPermission(\App\Enums\UserPermission::Administrator))
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('manage.admin.index') }}">Panel administratora</a>
+                                </li>
+                            @endif
                         @endauth
                     </ul>
 
