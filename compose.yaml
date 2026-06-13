@@ -64,13 +64,14 @@ services:
                 condition: service_completed_successfully
             pgsql:
                 condition: service_healthy
-        command: >
-            bash -c "
+        entrypoint: ["/bin/bash", "-c"]
+        command:
+            - |
+              if [ -n "$$WWWUSER" ]; then usermod -u $$WWWUSER sail; fi
               if [ ! -f public/build/manifest.json ]; then
-                npm ci && npm run build;
-              fi &&
-              exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
-            "
+                npm ci && npm run build
+              fi
+              exec /usr/local/bin/start-container
         networks:
             - sail
 
