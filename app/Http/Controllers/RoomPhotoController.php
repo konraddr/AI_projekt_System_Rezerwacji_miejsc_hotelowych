@@ -20,7 +20,7 @@ class RoomPhotoController extends Controller
     public function index(Hotel $hotel, Room $room): View
     {
         $this->ensureRoomBelongsToHotel($hotel, $room);
-        $this->authorize('viewAny', Photo::class);
+        $this->authorize('viewAny', [Photo::class, $hotel]);
 
         $photos = $room->photos()->get();
 
@@ -30,7 +30,7 @@ class RoomPhotoController extends Controller
     public function store(StorePhotoRequest $request, Hotel $hotel, Room $room): RedirectResponse
     {
         $this->ensureRoomBelongsToHotel($hotel, $room);
-        $this->authorize('create', Photo::class);
+        $this->authorize('create', [Photo::class, $hotel]);
 
         $validated = $request->validated();
         $nextOrder = $room->photos()->max('order');
@@ -54,7 +54,7 @@ class RoomPhotoController extends Controller
     {
         $this->ensureRoomBelongsToHotel($hotel, $room);
         $this->ensurePhotoBelongsToRoom($room, $photo);
-        $this->authorize('update', $photo);
+        $this->authorize('update', [$photo, $hotel]);
 
         $photo->update([
             'order' => (int) $request->validated('order'),
@@ -69,7 +69,7 @@ class RoomPhotoController extends Controller
     {
         $this->ensureRoomBelongsToHotel($hotel, $room);
         $this->ensurePhotoBelongsToRoom($room, $photo);
-        $this->authorize('delete', $photo);
+        $this->authorize('delete', [$photo, $hotel]);
 
         $this->photoUploadService->delete($photo);
 

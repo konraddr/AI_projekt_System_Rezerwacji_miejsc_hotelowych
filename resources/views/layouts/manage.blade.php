@@ -17,6 +17,12 @@
                            class="list-group-item list-group-item-action {{ request()->routeIs('manage.hotels.create') ? 'active' : '' }}">
                             Dodaj hotel
                         </a>
+                        @if (auth()->user()->hasPermission(\App\Enums\UserPermission::Administrator))
+                            <a href="{{ route('manage.amenities.index') }}"
+                               class="list-group-item list-group-item-action {{ request()->routeIs('manage.amenities.*') ? 'active' : '' }}">
+                                Udogodnienia
+                            </a>
+                        @endif
                         <a href="{{ route('hotels.index') }}" class="list-group-item list-group-item-action">
                             Katalog publiczny
                         </a>

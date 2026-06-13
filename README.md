@@ -12,33 +12,49 @@ AI_projekt_System_Rezerwacji_miejsc_hotelowych
 
 
 ## 2. Sklonuj repozytorium
-* Wpisz w terminalu:
->
-> git clone https://github.com/konraddr/AI_projekt_System_Rezerwacji_miejsc_hotelowych.git
->
-> cd AI_projekt_System_Rezerwacji_miejsc_hotelowych
->
 
-## 3. Skopiuj plik konfiguracyjny i pobierz paczki
-   * Wklej po kolei:
-> cp .env.example .env
-> 
-> docker run --rm -v "$(pwd):/var/www/html" -w /var/www/html laravelsail/php84-composer:latest composer install
->
-## 4. Odpal serwer
-   * Włączamy Dockera poleceniem Sail:
-   > ./vendor/bin/sail up -d
-## 5. Wgraj bazę danych i wygląd
-   Gdy serwer działa, wklej po kolei te 4 komendy, aby wszystko zainstalować:
+```bash
+git clone https://github.com/konraddr/AI_projekt_System_Rezerwacji_miejsc_hotelowych.git
+cd AI_projekt_System_Rezerwacji_miejsc_hotelowych
+```
 
->./vendor/bin/sail artisan key:generate
+## 3. Uruchom projekt
 
-> ./vendor/bin/sail artisan migrate 
+```bash
+docker compose up -d --build
+```
 
->./vendor/bin/sail npm install
+**Pierwszy raz** po klonie: ok. 5–10 min (build obrazu, composer, npm).  
+**Kolejne razy:** `docker compose up -d` — ok. 30 sekund.
 
->./vendor/bin/sail npm run build
- 
+> Nie uruchamiaj jako `root`. Używaj zwykłego użytkownika WSL.
+
+Aplikacja: http://localhost  
+Login testowy: `test@example.com` / `password`
+
+## 4. Codzienne użycie
+
+```bash
+docker compose up -d
+docker compose down
+```
+
+## 5. Po aktualizacji kodu 
+
+```bash
+git pull origin main
+docker compose up -d --build
+```
+
+## 6. Pełny reset 
+
+```bash
+docker compose down -v
+rm -rf vendor node_modules public/build .env storage/.docker-initialized
+docker compose up -d --build
+```
+
+
 Podział:
 
 ###  OSOBA 1: Konrad (Tech Lead - Moduł "Hotel, Pokoje i Mapa")

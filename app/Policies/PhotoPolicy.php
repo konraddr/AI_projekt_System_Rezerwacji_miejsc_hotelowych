@@ -2,37 +2,36 @@
 
 namespace App\Policies;
 
+use App\Enums\HotelWorkerAccess;
+use App\Models\Hotel;
 use App\Models\Photo;
 use App\Models\User;
+use App\Services\HotelAccessService;
 
 class PhotoPolicy
 {
-    /**
-     * Tymczasowo: każdy zalogowany użytkownik w panelu manage.
-     * Po dodaniu hotels.user_id lub workers (Konrad/Daniel) — sprawdzać właściciela obiektu.
-     */
-    public function viewAny(User $user): bool
+    public function viewAny(User $user, Hotel $hotel): bool
     {
-        return true;
+        return app(HotelAccessService::class)->userCanAccess($user, $hotel, HotelWorkerAccess::Photos);
     }
 
-    public function view(User $user, Photo $photo): bool
+    public function view(User $user, Photo $photo, Hotel $hotel): bool
     {
-        return true;
+        return $this->viewAny($user, $hotel);
     }
 
-    public function create(User $user): bool
+    public function create(User $user, Hotel $hotel): bool
     {
-        return true;
+        return $this->viewAny($user, $hotel);
     }
 
-    public function update(User $user, Photo $photo): bool
+    public function update(User $user, Photo $photo, Hotel $hotel): bool
     {
-        return true;
+        return $this->viewAny($user, $hotel);
     }
 
-    public function delete(User $user, Photo $photo): bool
+    public function delete(User $user, Photo $photo, Hotel $hotel): bool
     {
-        return true;
+        return $this->viewAny($user, $hotel);
     }
 }

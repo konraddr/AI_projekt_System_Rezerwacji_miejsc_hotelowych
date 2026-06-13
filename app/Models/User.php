@@ -12,18 +12,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use NotificationChannels\WebPush\HasPushSubscriptions;
 
 #[Fillable(['name', 'last_name', 'email', 'phone', 'password', 'permission'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
-
-    public function hotels(): HasMany
-    {
-        return $this->hasMany(Hotel::class);
-    }
+    use HasFactory, HasPushSubscriptions, Notifiable;
 
     public function reviews(): HasMany
     {
@@ -57,7 +53,9 @@ class User extends Authenticatable
             'workers',
             'worker_id',
             'hotel_id'
-        );
+        )
+            ->using(HotelWorker::class)
+            ->withPivot('permissions');
     }
 
     public function hasPermission(UserPermission ...$permissions): bool
@@ -67,7 +65,7 @@ class User extends Authenticatable
 
     public function isBanned(): bool
     {
-        return $this->permission->isBanned();
+        return $this->permission?->isBanned() ?? false;
     }
 
     /**

@@ -4,18 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreRoomRequest;
 use App\Http\Requests\UpdateRoomRequest;
+use App\Enums\HotelWorkerAccess;
 use App\Models\Hotel;
 use App\Models\Room;
 use App\Services\AmenityInheritanceService;
+use App\Services\HotelAccessService;
 
 class RoomController extends Controller
 {
     public function __construct(
-        private readonly AmenityInheritanceService $amenityService
+        private readonly AmenityInheritanceService $amenityService,
+        private readonly HotelAccessService $hotelAccess
     ) {}
 
     public function manage(Hotel $hotel)
     {
+        $this->hotelAccess->authorizeHotelCapability(auth()->user(), $hotel, HotelWorkerAccess::Rooms);
+
         $hotel->load([
             'rooms.roomAmenities.hotelAmenity.amenity',
         ]);
@@ -25,6 +30,8 @@ class RoomController extends Controller
 
     public function create(Hotel $hotel)
     {
+        $this->hotelAccess->authorizeHotelCapability(auth()->user(), $hotel, HotelWorkerAccess::Rooms);
+
         $amenities = $hotel->amenities()->orderBy('name')->get();
 
         return view('rooms.create', compact('hotel', 'amenities'));
@@ -32,6 +39,8 @@ class RoomController extends Controller
 
     public function store(StoreRoomRequest $request, Hotel $hotel)
     {
+        $this->hotelAccess->authorizeHotelCapability($request->user(), $hotel, HotelWorkerAccess::Rooms);
+
         $validated = $request->validated();
 
         $room = $hotel->rooms()->create([
@@ -58,6 +67,7 @@ class RoomController extends Controller
 
     public function edit(Hotel $hotel, Room $room)
     {
+        $this->hotelAccess->authorizeHotelCapability(auth()->user(), $hotel, HotelWorkerAccess::Rooms);
         $this->ensureRoomBelongsToHotel($hotel, $room);
 
         $room->load('roomAmenities.hotelAmenity');
@@ -68,6 +78,7 @@ class RoomController extends Controller
 
     public function update(UpdateRoomRequest $request, Hotel $hotel, Room $room)
     {
+        $this->hotelAccess->authorizeHotelCapability($request->user(), $hotel, HotelWorkerAccess::Rooms);
         $this->ensureRoomBelongsToHotel($hotel, $room);
 
         $validated = $request->validated();
@@ -94,6 +105,7 @@ class RoomController extends Controller
 
     public function destroy(Hotel $hotel, Room $room)
     {
+        $this->hotelAccess->authorizeHotelCapability(auth()->user(), $hotel, HotelWorkerAccess::Rooms);
         $this->ensureRoomBelongsToHotel($hotel, $room);
 
         $room->delete();

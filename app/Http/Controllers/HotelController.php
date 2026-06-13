@@ -4,14 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreHotelRequest;
 use App\Http\Requests\UpdateHotelRequest;
+use App\Enums\HotelWorkerAccess;
+use App\Enums\UserPermission;
 use App\Models\Amenity;
 use App\Models\Hotel;
 use App\Services\AmenityInheritanceService;
+use App\Services\HotelAccessService;
 
 class HotelController extends Controller
 {
     public function __construct(
-        private readonly AmenityInheritanceService $amenityService
+        private readonly AmenityInheritanceService $amenityService,
+        private readonly HotelAccessService $hotelAccess
     ) {}
 
     public function index()
@@ -33,7 +37,7 @@ class HotelController extends Controller
 
     public function manage()
     {
-        $hotels = Hotel::withCount(['rooms', 'amenities'])->latest()->get();
+        $hotels = $this->hotelAccess->hotelsForUser(auth()->user());
 
         return view('hotels.manage.index', compact('hotels'));
     }
@@ -50,6 +54,7 @@ class HotelController extends Controller
         $validated = $request->validated();
 
         $hotel = Hotel::create([
+            'owner_id' => $request->user()->id,
             'name' => $validated['name'],
             'city' => $validated['city'],
             'address' => $validated['address'],
@@ -57,6 +62,14 @@ class HotelController extends Controller
             'latitude' => $request->input('latitude', 52.069),
             'longitude' => $request->input('longitude', 19.480),
         ]);
+
+        $hotel->workers()->attach($request->user()->id, [
+            'permissions' => HotelWorkerAccess::values(),
+        ]);
+
+        if ($request->user()->hasPermission(UserPermission::Client)) {
+            $request->user()->update(['permission' => UserPermission::Owner]);
+        }
 
         $amenityPrices = AmenityInheritanceService::parseAmenityPrices(
             $validated['amenities'] ?? null,
@@ -74,6 +87,8 @@ class HotelController extends Controller
 
     public function edit(Hotel $hotel)
     {
+        $this->hotelAccess->authorizeHotelCapability(auth()->user(), $hotel, HotelWorkerAccess::Hotel);
+
         $hotel->load('amenities');
         $amenities = Amenity::orderBy('name')->get();
 
@@ -82,6 +97,8 @@ class HotelController extends Controller
 
     public function update(UpdateHotelRequest $request, Hotel $hotel)
     {
+        $this->hotelAccess->authorizeHotelCapability($request->user(), $hotel, HotelWorkerAccess::Hotel);
+
         $validated = $request->validated();
 
         $hotel->update([
@@ -107,6 +124,8 @@ class HotelController extends Controller
 
     public function destroy(Hotel $hotel)
     {
+        $this->hotelAccess->authorizeHotelCapability(auth()->user(), $hotel, HotelWorkerAccess::Hotel);
+
         $hotel->delete();
 
         return redirect()

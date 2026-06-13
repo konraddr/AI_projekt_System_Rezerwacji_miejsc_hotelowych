@@ -6,12 +6,13 @@ use App\Http\Requests\StoreReviewRequest;
 use App\Http\Requests\UpdateReviewRequest;
 use App\Models\Hotel;
 use App\Models\Review;
+use App\Services\ReviewEligibilityService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class ReviewController extends Controller
 {
-    public function create(Hotel $hotel): View
+    public function create(Hotel $hotel, ReviewEligibilityService $reviewEligibilityService): View|RedirectResponse
     {
         $this->authorize('create', Review::class);
 
@@ -20,7 +21,19 @@ class ReviewController extends Controller
             ->where('user_id', auth()->id())
             ->first();
 
-        return view('reviews.create', compact('hotel', 'existingReview'));
+        if ($existingReview) {
+            return view('reviews.create', compact('hotel', 'existingReview'));
+        }
+
+        $eligibleBookings = $reviewEligibilityService->eligibleBookingsForHotel($hotel, auth()->user());
+
+        if ($eligibleBookings->isEmpty()) {
+            return redirect()
+                ->route('hotels.show', $hotel)
+                ->with('error', 'Opinię można dodać dopiero po opłaconym i zakończonym pobycie w tym hotelu.');
+        }
+
+        return view('reviews.create', compact('hotel', 'existingReview', 'eligibleBookings'));
     }
 
     public function store(StoreReviewRequest $request, Hotel $hotel): RedirectResponse

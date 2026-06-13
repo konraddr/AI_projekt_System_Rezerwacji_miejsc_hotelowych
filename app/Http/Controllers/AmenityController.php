@@ -2,64 +2,64 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreAmenityRequest;
+use App\Http\Requests\UpdateAmenityRequest;
 use App\Models\Amenity;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class AmenityController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(): View
     {
-        //
+        $amenities = Amenity::query()
+            ->withCount('hotels')
+            ->orderBy('name')
+            ->get();
+
+        return view('amenities.index', compact('amenities'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function create(): View
     {
-        //
+        return view('amenities.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreAmenityRequest $request): RedirectResponse
     {
-        //
+        Amenity::create($request->validated());
+
+        return redirect()
+            ->route('manage.amenities.index')
+            ->with('success', 'Udogodnienie zostało dodane.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Amenity $amenity)
+    public function edit(Amenity $amenity): View
     {
-        //
+        return view('amenities.edit', compact('amenity'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Amenity $amenity)
+    public function update(UpdateAmenityRequest $request, Amenity $amenity): RedirectResponse
     {
-        //
+        $amenity->update($request->validated());
+
+        return redirect()
+            ->route('manage.amenities.index')
+            ->with('success', 'Udogodnienie zostało zaktualizowane.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Amenity $amenity)
+    public function destroy(Amenity $amenity): RedirectResponse
     {
-        //
-    }
+        if ($amenity->hotels()->exists()) {
+            return redirect()
+                ->route('manage.amenities.index')
+                ->with('error', 'Nie można usunąć udogodnienia przypisanego do hotelu.');
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Amenity $amenity)
-    {
-        //
+        $amenity->delete();
+
+        return redirect()
+            ->route('manage.amenities.index')
+            ->with('success', 'Udogodnienie zostało usunięte.');
     }
 }
