@@ -53,6 +53,23 @@
                                 </div>
                             </div>
 
+                            @php
+                                $standardAmenities = $room->standardAmenities();
+                            @endphp
+                            @if ($standardAmenities->isNotEmpty())
+                                <div class="mb-4">
+                                    <h2 class="h6 fw-bold mb-3">Domyślne udogodnienia (w cenie pokoju)</h2>
+                                    <ul class="list-group list-group-flush">
+                                        @foreach ($standardAmenities as $roomAmenity)
+                                            <li class="list-group-item d-flex justify-content-between px-0">
+                                                <span>{{ $roomAmenity->hotelAmenity->amenity->name }}</span>
+                                                <span class="text-success">Gratis</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+
                             @if ($paidAmenities->isNotEmpty())
                                 <div class="mb-4">
                                     <h2 class="h6 fw-bold mb-3">Dodatkowe płatne udogodnienia</h2>

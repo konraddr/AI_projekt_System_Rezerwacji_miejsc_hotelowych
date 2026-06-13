@@ -88,6 +88,7 @@ class BookingController extends Controller
 
         $booking->load([
             'room.hotel',
+            'room.roomAmenities.hotelAmenity.amenity',
             'extraAmenities.hotelAmenity.amenity',
         ]);
 

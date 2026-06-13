@@ -52,18 +52,8 @@
                             </div>
                         </div>
 
-                        @if ($booking->extraAmenities->isNotEmpty())
-                            <div class="mb-4">
-                                <h2 class="h6 fw-bold border-bottom pb-2 mb-3">Zamrożone udogodnienia dodatkowe</h2>
-                                <ul class="list-group list-group-flush">
-                                    @foreach ($booking->extraAmenities as $extra)
-                                        <li class="list-group-item d-flex justify-content-between px-0">
-                                            <span>{{ $extra->hotelAmenity->amenity->name }}</span>
-                                            <span>{{ number_format($extra->price, 2) }} PLN</span>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            </div>
+                        @if ($booking->room->roomAmenities->isNotEmpty())
+                            @include('partials.booking-room-amenities', ['room' => $booking->room, 'booking' => $booking])
                         @endif
 
                         <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">

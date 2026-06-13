@@ -57,16 +57,8 @@
                         </div>
                     </div>
 
-                    @if ($booking->extraAmenities->isNotEmpty())
-                        <h2 class="h6 fw-bold">Dodatkowe udogodnienia</h2>
-                        <ul class="list-group list-group-flush mb-4">
-                            @foreach ($booking->extraAmenities as $extra)
-                                <li class="list-group-item px-0 d-flex justify-content-between">
-                                    <span>{{ $extra->hotelAmenity?->amenity?->name ?? 'Udogodnienie' }}</span>
-                                    <span>{{ number_format($extra->price, 2) }} PLN</span>
-                                </li>
-                            @endforeach
-                        </ul>
+                    @if ($booking->room->roomAmenities->isNotEmpty())
+                        @include('partials.booking-room-amenities', ['room' => $booking->room, 'booking' => $booking])
                     @endif
 
                     <a href="{{ route('manage.hotels.bookings.index', $hotel) }}" class="btn btn-outline-secondary">
