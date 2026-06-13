@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'not.banned' => \App\Http\Middleware\EnsureNotBanned::class,
             'permission' => \App\Http\Middleware\EnsurePermission::class,
+            'can.manage.hotels' => \App\Http\Middleware\EnsureCanManageHotels::class,
         ]);
 
         $middleware->web(append: [

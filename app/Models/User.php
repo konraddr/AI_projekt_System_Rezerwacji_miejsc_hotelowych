@@ -68,6 +68,31 @@ class User extends Authenticatable
         return $this->permission?->isBanned() ?? false;
     }
 
+    public function canAccessHotelPanel(): bool
+    {
+        if ($this->hasPermission(
+            UserPermission::Administrator,
+            UserPermission::Owner,
+            UserPermission::Worker,
+        )) {
+            return true;
+        }
+
+        return $this->workerHotels()->exists();
+    }
+
+    public function canCreateHotel(): bool
+    {
+        if ($this->hasPermission(
+            UserPermission::Administrator,
+            UserPermission::Owner,
+        )) {
+            return true;
+        }
+
+        return ! $this->workerHotels()->exists();
+    }
+
     /**
      * @return array<string, string>
      */
