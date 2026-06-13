@@ -1,12 +1,17 @@
 @if ($room->photos->isNotEmpty())
-    <div class="d-flex flex-wrap gap-1 mb-2">
-        @foreach ($room->photos->take(4) as $photo)
-            <img src="{{ $photo->url() }}" alt="Zdjęcie {{ $room->name }}"
-                 class="rounded border"
-                 style="width: 52px; height: 52px; object-fit: cover;">
-        @endforeach
-        @if ($room->photos->count() > 4)
-            <span class="badge bg-light text-dark border align-self-center">+{{ $room->photos->count() - 4 }}</span>
-        @endif
+    @pushOnce('styles')
+        <link rel="stylesheet" href="{{ asset('css/hotel-photo-gallery.css') }}">
+    @endPushOnce
+
+    <div class="room-photo-gallery mb-2">
+        <p class="small fw-semibold mb-2">Galeria pokoju</p>
+        @include('partials.hotel-photo-preview-strip', [
+            'photos' => $room->photos,
+            'carouselId' => 'roomPhotoCarousel'.$room->id,
+            'altPrefix' => 'Zdjęcie '.$room->name,
+            'enlargeOnClick' => true,
+        ])
     </div>
+
+    @include('partials.photo-lightbox')
 @endif

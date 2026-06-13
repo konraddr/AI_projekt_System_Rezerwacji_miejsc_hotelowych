@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\AdminHotelController;
+use App\Http\Controllers\AdminPanelController;
 use App\Http\Controllers\AdminReportController;
 use App\Http\Controllers\AdminReviewController;
+use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\HotelPhotoController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ReportController;
@@ -40,8 +43,18 @@ Route::get('/reports', [ReportController::class, 'index'])->name('reports.index'
 Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
 Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
 Route::get('/reports/{report}', [ReportController::class, 'show'])->name('reports.show');
+Route::patch('/reports/{report}/status', [ReportController::class, 'updateStatus'])->name('reports.update-status');
 
-Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
+Route::middleware('permission:0')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminPanelController::class, 'index'])->name('index');
+
+    Route::get('/hotels', [AdminHotelController::class, 'index'])->name('hotels.index');
+
+    Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+    Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+
     Route::get('/reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
     Route::patch('/reviews/{review}/ban', [AdminReviewController::class, 'ban'])->name('reviews.ban');
     Route::patch('/reviews/{review}/unban', [AdminReviewController::class, 'unban'])->name('reviews.unban');

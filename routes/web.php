@@ -3,7 +3,9 @@
 use App\Http\Controllers\AmenityController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PhotoFileController;
 use App\Http\Controllers\HotelBookingController;
+use App\Http\Controllers\ReviewReportController;
 use App\Http\Controllers\HotelController;
 use App\Http\Controllers\HotelWorkerController;
 use App\Http\Controllers\NotificationController;
@@ -22,6 +24,8 @@ Route::get('/home', [HomeController::class, 'index'])->name('home');
 
 Route::get('/hotels', [HotelController::class, 'index'])->name('hotels.index');
 Route::get('/hotels/{hotel}', [HotelController::class, 'show'])->name('hotels.show');
+Route::get('/photos/{photo}', [PhotoFileController::class, 'show'])->name('photos.show');
+Route::post('/hotels/{hotel}/reviews/{review}/report', [ReviewReportController::class, 'store'])->name('hotels.reviews.report');
 
 Route::middleware('auth')->prefix('bookings')->name('bookings.')->group(function () {
     Route::get('/', [BookingController::class, 'index'])->name('index');

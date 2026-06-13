@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\UserPermission;
 use App\Models\Review;
 use App\Models\User;
 
@@ -34,6 +35,7 @@ class ReviewPolicy
 
     public function moderate(User $user, ?Review $review = null): bool
     {
-        return in_array($user->email, config('maciej.admin_emails', []), true);
+        return $user->hasPermission(UserPermission::Administrator)
+            || in_array($user->email, config('maciej.admin_emails', []), true);
     }
 }

@@ -15,8 +15,10 @@ class AdminReviewController extends Controller
 
         $reviews = Review::query()
             ->with(['user', 'hotel'])
+            ->withCount('reports')
             ->when($request->query('filter') === 'banned', fn ($q) => $q->where('is_banned', true))
             ->when($request->query('filter') === 'visible', fn ($q) => $q->where('is_banned', false))
+            ->when($request->query('filter') === 'reported', fn ($q) => $q->whereHas('reports'))
             ->latest()
             ->paginate(20)
             ->withQueryString();
@@ -31,7 +33,7 @@ class AdminReviewController extends Controller
         $review->update(['is_banned' => true]);
 
         return redirect()
-            ->route('manage.admin.reviews.index')
+            ->route('manage.admin.reviews.index', array_filter(['filter' => request('filter')]))
             ->with('success', 'Opinia została ukryta (ban).');
     }
 
@@ -42,7 +44,7 @@ class AdminReviewController extends Controller
         $review->update(['is_banned' => false]);
 
         return redirect()
-            ->route('manage.admin.reviews.index')
+            ->route('manage.admin.reviews.index', array_filter(['filter' => request('filter')]))
             ->with('success', 'Opinia została przywrócona.');
     }
 }

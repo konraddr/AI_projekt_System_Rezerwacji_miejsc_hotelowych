@@ -1,16 +1,16 @@
-@extends('layouts.manage')
+@extends('layouts.admin')
 
 @section('title', 'Panel zgłoszeń')
 
-@section('manage-content')
+@section('admin-content')
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
         <div>
             <h1 class="h3 mb-1">Panel zgłoszeń</h1>
             <p class="text-muted mb-0">Zmiana statusu zgłoszeń użytkowników (pending / resolved / rejected).</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
+            <a href="{{ route('manage.admin.index') }}" class="btn btn-outline-secondary">Przegląd</a>
             <a href="{{ route('manage.admin.reviews.index') }}" class="btn btn-outline-secondary">Moderacja opinii</a>
-            <a href="{{ route('manage.reports.index') }}" class="btn btn-outline-primary">Moje zgłoszenia</a>
         </div>
     </div>
 
@@ -43,9 +43,19 @@
                     @forelse ($reports as $report)
                         <tr>
                             <td>{{ $report->id }}</td>
-                            <td>{{ $report->user->name }}</td>
+                            <td>{{ $report->user?->name ?? 'Gość' }}</td>
                             <td>{{ str_replace('_', ' ', $report->title->value) }}</td>
-                            <td>{{ Str::limit($report->reason, 60) }}</td>
+                            <td>
+                                {{ Str::limit($report->reason, 60) }}
+                                @if ($report->review)
+                                    <div class="small text-muted mt-1">
+                                        Opinia #{{ $report->review->id }} — {{ $report->review->user->name }}
+                                        @if ($report->review->is_banned)
+                                            <span class="badge bg-danger">Ukryta</span>
+                                        @endif
+                                    </div>
+                                @endif
+                            </td>
                             <td class="text-nowrap small text-muted">{{ $report->created_at->format('d.m.Y H:i') }}</td>
                             <td class="text-center">
                                 <span class="badge bg-secondary">{{ $report->status->label() }}</span>

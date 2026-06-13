@@ -52,11 +52,25 @@
         </div>
     </div>
 
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('css/hotel-photo-gallery.css') }}">
+    @endpush
+
     <div class="card border-0 shadow-sm">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
             <h2 class="h5 mb-0">Galeria ({{ $photos->count() }})</h2>
         </div>
         <div class="card-body">
+            @if ($photos->isNotEmpty())
+                <div class="mb-4 pb-3 border-bottom">
+                    @include('partials.hotel-photo-preview-strip', [
+                        'photos' => $photos,
+                        'carouselId' => 'manageHotelPhotoCarousel',
+                        'altPrefix' => 'Zdjęcie hotelu '.$hotel->name,
+                    ])
+                </div>
+            @endif
+
             @forelse ($photos as $photo)
                 <div class="row g-3 align-items-center border-bottom py-3 {{ $loop->last ? 'border-0 pb-0' : '' }}">
                     <div class="col-12 col-md-3 col-lg-2">
@@ -75,8 +89,12 @@
                             @method('PATCH')
                             <div class="flex-grow-1">
                                 <label class="form-label small fw-semibold mb-1" for="order_{{ $photo->id }}">Kolejność</label>
-                                <input type="number" name="order" id="order_{{ $photo->id }}" min="0"
-                                       class="form-control form-control-sm" value="{{ $photo->order }}" required>
+                                <input type="number" name="order" id="order_{{ $photo->id }}" min="1" max="{{ $photos->count() }}"
+                                       class="form-control form-control-sm @error('order', 'update-photo-'.$photo->id) is-invalid @enderror"
+                                       value="{{ $errors->getBag('update-photo-'.$photo->id)->has('order') ? old('order') : $photo->order }}" required>
+                                @error('order', 'update-photo-'.$photo->id)
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <button type="submit" class="btn btn-sm btn-outline-primary">Zapisz</button>
                         </form>

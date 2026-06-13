@@ -14,6 +14,8 @@ class Report extends Model
 
     protected $fillable = [
         'user_id',
+        'hotel_id',
+        'review_id',
         'title',
         'reason',
         'status',
@@ -35,5 +37,15 @@ class Report extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function hotel(): BelongsTo
+    {
+        return $this->belongsTo(Hotel::class);
+    }
+
+    public function review(): BelongsTo
+    {
+        return $this->belongsTo(Review::class);
     }
 }

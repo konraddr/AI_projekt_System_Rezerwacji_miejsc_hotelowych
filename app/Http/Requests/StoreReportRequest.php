@@ -21,6 +21,7 @@ class StoreReportRequest extends FormRequest
         return [
             'title' => ['required', Rule::enum(ReportTitle::class)],
             'reason' => ['required', 'string', 'min:10', 'max:3000'],
+            'hotel_id' => ['nullable', 'integer', 'exists:hotels,id'],
         ];
     }
 

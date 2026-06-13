@@ -21,6 +21,10 @@
                         <form action="{{ route('manage.reports.store') }}" method="POST">
                             @csrf
 
+                            @if ($hotel ?? null)
+                                <input type="hidden" name="hotel_id" value="{{ $hotel->id }}">
+                            @endif
+
                             <div class="mb-3">
                                 <label class="form-label fw-semibold" for="title">Typ zgłoszenia</label>
                                 <select name="title" id="title" class="form-select @error('title') is-invalid @enderror" required>

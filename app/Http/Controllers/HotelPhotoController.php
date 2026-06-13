@@ -8,6 +8,7 @@ use App\Models\Hotel;
 use App\Models\Photo;
 use App\Services\PhotoUploadService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class HotelPhotoController extends Controller
@@ -52,9 +53,26 @@ class HotelPhotoController extends Controller
         $this->ensurePhotoBelongsToHotel($hotel, $photo);
         $this->authorize('update', [$photo, $hotel]);
 
-        $photo->update([
-            'order' => (int) $request->validated('order'),
-        ]);
+        $oldOrder = $photo->order;
+        $newOrder = (int) $request->validated('order');
+
+        if ($oldOrder !== $newOrder) {
+            DB::transaction(function () use ($hotel, $photo, $oldOrder, $newOrder): void {
+                if ($newOrder > $oldOrder) {
+                    $hotel->photos()
+                        ->where('id', '!=', $photo->id)
+                        ->whereBetween('order', [$oldOrder + 1, $newOrder])
+                        ->decrement('order');
+                } elseif ($newOrder < $oldOrder) {
+                    $hotel->photos()
+                        ->where('id', '!=', $photo->id)
+                        ->whereBetween('order', [$newOrder, $oldOrder - 1])
+                        ->increment('order');
+                }
+
+                $photo->update(['order' => $newOrder]);
+            });
+        }
 
         return redirect()
             ->route('manage.hotels.photos.index', $hotel)

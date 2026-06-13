@@ -80,4 +80,9 @@ class Hotel extends Model
     {
         return $this->hasMany(Message::class);
     }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
+    }
 }
