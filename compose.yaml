@@ -90,6 +90,29 @@ services:
         networks:
             - sail
 
+    scheduler:
+        build:
+            context: ./docker/8.5
+            dockerfile: Dockerfile
+            args:
+                WWWGROUP: '${WWWGROUP:-1000}'
+        image: sail-8.5/app
+        volumes:
+            - '.:/var/www/html'
+        working_dir: /var/www/html
+        environment:
+            WWWUSER: '${WWWUSER:-1000}'
+            LARAVEL_SAIL: 1
+        depends_on:
+            init:
+                condition: service_completed_successfully
+            pgsql:
+                condition: service_healthy
+        command: ["php", "artisan", "schedule:work"]
+        restart: unless-stopped
+        networks:
+            - sail
+
     pgsql:
         image: 'postgres:18-alpine'
         ports:
