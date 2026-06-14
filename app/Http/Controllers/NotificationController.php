@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -9,16 +10,15 @@ use Illuminate\View\View;
 
 class NotificationController extends Controller
 {
-    public function __construct()
-    {
+    public function __construct(
+        private readonly NotificationService $notificationService
+    ) {
         $this->middleware('auth');
     }
 
     public function index(): View
     {
-        $notifications = auth()->user()
-            ->notifications()
-            ->paginate(20);
+        $notifications = $this->notificationService->paginatedForUser(auth()->user());
 
         return view('notifications.index', compact('notifications'));
     }
@@ -26,14 +26,13 @@ class NotificationController extends Controller
     public function unreadCount(): JsonResponse
     {
         return response()->json([
-            'count' => auth()->user()->unreadNotifications()->count(),
+            'count' => $this->notificationService->unreadCountForUser(auth()->user()),
         ]);
     }
 
     public function markAsRead(Request $request, string $notification): RedirectResponse
     {
-        $item = auth()->user()->notifications()->where('id', $notification)->firstOrFail();
-        $item->markAsRead();
+        $item = $this->notificationService->markAsRead(auth()->user(), $notification);
 
         $url = $item->data['url'] ?? route('notifications.index');
 
@@ -42,7 +41,7 @@ class NotificationController extends Controller
 
     public function markAllAsRead(): RedirectResponse
     {
-        auth()->user()->unreadNotifications->markAsRead();
+        $this->notificationService->markAllAsRead(auth()->user());
 
         return back()->with('success', 'Wszystkie powiadomienia oznaczono jako przeczytane.');
     }

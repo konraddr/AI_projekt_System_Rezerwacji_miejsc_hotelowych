@@ -16,6 +16,14 @@ class EnsureNotBanned
         $user = $request->user();
 
         if ($user !== null && $user->isBanned()) {
+            if ($request->is('api/*')) {
+                $user->currentAccessToken()?->delete();
+
+                return response()->json([
+                    'message' => 'Twoje konto zostało zablokowane.',
+                ], 403);
+            }
+
             auth()->logout();
 
             return redirect()

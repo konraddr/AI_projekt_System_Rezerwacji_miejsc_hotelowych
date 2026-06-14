@@ -15,7 +15,7 @@
                   data-unsubscribe-url="{{ route('push-subscriptions.destroy') }}">
         @endif
         <meta name="notification-badge-config"
-              data-poll-url="{{ route('notifications.unread-count') }}"
+              data-poll-url="{{ url('/api/notifications/unread-count') }}"
               data-poll-interval="10000">
     @endauth
 
