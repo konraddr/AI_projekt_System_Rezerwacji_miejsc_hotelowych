@@ -6,8 +6,12 @@
     <div class="container py-2">
         <nav aria-label="breadcrumb" class="mb-3">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('manage.reports.index') }}">Zgłoszenia</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Nowe</li>
+                @if ($hotel ?? null)
+                    <li class="breadcrumb-item"><a href="{{ route('hotels.show', $hotel) }}">{{ $hotel->name }}</a></li>
+                @else
+                    <li class="breadcrumb-item"><a href="{{ route('notifications.index') }}">Powiadomienia</a></li>
+                @endif
+                <li class="breadcrumb-item active" aria-current="page">Nowe zgłoszenie</li>
             </ol>
         </nav>
 
@@ -47,7 +51,8 @@
 
                             <div class="d-flex gap-2">
                                 <button type="submit" class="btn btn-primary">Wyślij zgłoszenie</button>
-                                <a href="{{ route('manage.reports.index') }}" class="btn btn-outline-secondary">Anuluj</a>
+                                <a href="{{ ($hotel ?? null) ? route('hotels.show', $hotel) : route('notifications.index') }}"
+                                   class="btn btn-outline-secondary">Anuluj</a>
                             </div>
                         </form>
                     </div>

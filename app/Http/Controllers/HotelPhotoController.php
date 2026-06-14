@@ -31,17 +31,23 @@ class HotelPhotoController extends Controller
         $this->authorize('create', [Photo::class, $hotel]);
 
         $validated = $request->validated();
-        $nextOrder = $hotel->photos()->max('order');
+        $photoCount = $hotel->photos()->count();
 
         $order = isset($validated['order'])
             ? (int) $validated['order']
-            : (int) $nextOrder + 1;
+            : $photoCount + 1;
 
-        $this->photoUploadService->upload(
-            $request->file('photo'),
-            $hotel,
-            $order
-        );
+        DB::transaction(function () use ($request, $hotel, $order): void {
+            $hotel->photos()
+                ->where('order', '>=', $order)
+                ->increment('order');
+
+            $this->photoUploadService->upload(
+                $request->file('photo'),
+                $hotel,
+                $order
+            );
+        });
 
         return redirect()
             ->route('manage.hotels.photos.index', $hotel)

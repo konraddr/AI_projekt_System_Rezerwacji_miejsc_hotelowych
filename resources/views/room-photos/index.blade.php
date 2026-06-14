@@ -39,9 +39,9 @@
                 </div>
                 <div class="col-12 col-md-3">
                     <label for="order" class="form-label fw-semibold">Kolejność</label>
-                    <input type="number" name="order" id="order" min="0" step="1"
+                    <input type="number" name="order" id="order" min="1" max="{{ $photos->count() + 1 }}" step="1"
                            class="form-control @error('order') is-invalid @enderror"
-                           value="{{ old('order', ($photos->max('order') ?? -1) + 1) }}"
+                           value="{{ old('order', ($photos->max('order') ?? 0) + 1) }}"
                            placeholder="opcjonalnie">
                     @error('order')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     <div class="form-text">Niższa liczba = wyżej na liście.</div>
@@ -75,9 +75,13 @@
                             @csrf
                             @method('PATCH')
                             <div class="flex-grow-1">
-                                <label class="form-label small fw-semibold mb-1" for="order_{{ $loop->index }}">Kolejność</label>
-                                <input type="number" name="order" id="order_{{ $loop->index }}" min="0"
-                                       class="form-control form-control-sm" value="{{ $photo->order }}" required>
+                                <label class="form-label small fw-semibold mb-1" for="order_{{ $photo->id }}">Kolejność</label>
+                                <input type="number" name="order" id="order_{{ $photo->id }}" min="1" max="{{ $photos->count() }}"
+                                       class="form-control form-control-sm @error('order', 'update-photo-'.$photo->id) is-invalid @enderror"
+                                       value="{{ $errors->getBag('update-photo-'.$photo->id)->has('order') ? old('order') : $photo->order }}" required>
+                                @error('order', 'update-photo-'.$photo->id)
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <button type="submit" class="btn btn-sm btn-outline-primary">Zapisz</button>
                         </form>

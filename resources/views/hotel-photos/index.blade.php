@@ -38,9 +38,9 @@
                 </div>
                 <div class="col-12 col-md-3">
                     <label for="order" class="form-label fw-semibold">Kolejność</label>
-                    <input type="number" name="order" id="order" min="0" step="1"
+                    <input type="number" name="order" id="order" min="1" max="{{ $photos->count() + 1 }}" step="1"
                            class="form-control @error('order') is-invalid @enderror"
-                           value="{{ old('order', $photos->max('order') + 1) }}"
+                           value="{{ old('order', ($photos->max('order') ?? 0) + 1) }}"
                            placeholder="opcjonalnie">
                     @error('order')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     <div class="form-text">Niższa liczba = wyżej na liście.</div>

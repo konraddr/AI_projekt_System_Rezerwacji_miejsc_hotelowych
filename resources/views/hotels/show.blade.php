@@ -91,7 +91,7 @@
                     </div>
 
                     @auth
-                        @if (auth()->user()->canAccessHotelPanel())
+                        @if (app(\App\Services\HotelAccessService::class)->userCanAccess(auth()->user(), $hotel, \App\Enums\HotelWorkerAccess::Rooms))
                             <div class="px-3 pt-3">
                                 <a href="{{ route('manage.rooms.create', $hotel) }}" class="btn btn-success w-100 btn-sm">
                                     Dodaj pokój (panel)

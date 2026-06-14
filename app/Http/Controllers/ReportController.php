@@ -20,18 +20,6 @@ class ReportController extends Controller
         private readonly ReportStatusService $reportStatusService
     ) {}
 
-    public function index(): View
-    {
-        $this->authorize('viewAny', Report::class);
-
-        $reports = Report::query()
-            ->where('user_id', auth()->id())
-            ->latest()
-            ->paginate(15);
-
-        return view('reports.index', compact('reports'));
-    }
-
     public function create(Request $request): View
     {
         $this->authorize('create', Report::class);

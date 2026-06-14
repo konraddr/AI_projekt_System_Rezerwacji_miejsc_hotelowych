@@ -39,7 +39,6 @@ Route::get('/hotels/{hotel}/chat', [MessageController::class, 'chat'])->name('ho
 Route::get('/hotels/{hotel}/messages', [MessageController::class, 'index'])->name('hotels.messages.index');
 Route::post('/hotels/{hotel}/messages', [MessageController::class, 'store'])->name('hotels.messages.store');
 
-Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
 Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
 Route::get('/reports/{report}', [ReportController::class, 'show'])->name('reports.show');
