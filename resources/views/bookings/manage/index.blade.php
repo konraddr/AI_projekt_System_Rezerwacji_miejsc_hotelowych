@@ -20,6 +20,8 @@
         </div>
     </div>
 
+    @include('partials.alerts')
+
     <div class="card border-0 shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -57,9 +59,17 @@
                                     {{ $booking->payment_status->label() }}
                                 </span>
                             </td>
-                            <td class="text-end">
+                            <td class="text-end text-nowrap">
                                 <a href="{{ route('manage.hotels.bookings.show', [$hotel, $booking]) }}"
                                    class="btn btn-sm btn-outline-primary">Szczegóły</a>
+                                @if ($booking->canCancel())
+                                    <form action="{{ route('manage.hotels.bookings.cancel', [$hotel, $booking]) }}"
+                                          method="POST" class="d-inline"
+                                          onsubmit="return confirm('Anulować tę rezerwację? Klient otrzyma powiadomienie.');">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Anuluj</button>
+                                    </form>
+                                @endif
                             </td>
                         </tr>
                     @empty
