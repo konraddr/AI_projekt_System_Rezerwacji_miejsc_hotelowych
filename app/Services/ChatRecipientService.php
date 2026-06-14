@@ -2,48 +2,38 @@
 
 namespace App\Services;
 
-use App\Enums\UserPermission;
-use App\Models\Booking;
+use App\Enums\HotelWorkerAccess;
 use App\Models\Hotel;
-use App\Models\Message;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 
 class ChatRecipientService
 {
+    public function __construct(
+        private readonly HotelAccessService $hotelAccess
+    ) {}
+
     /**
      * @return Collection<int, User>
      */
     public function receiversForHotel(Hotel $hotel, User $currentUser): Collection
     {
-        $receiverIds = Message::query()
-            ->where('hotel_id', $hotel->id)
-            ->forParticipant($currentUser->id)
-            ->get(['sender_id', 'receiver_id'])
-            ->flatMap(fn (Message $message) => [$message->sender_id, $message->receiver_id]);
+        $hotel->load('workers');
 
-        $receiverIds = $receiverIds
-            ->merge($hotel->workers()->pluck('users.id'))
-            ->merge(
-                Booking::query()
-                    ->whereHas('room', fn ($query) => $query->where('hotel_id', $hotel->id))
-                    ->pluck('user_id')
-            )
-            ->merge(User::query()->whereIn('email', config('maciej.admin_emails', []))->pluck('id'))
-            ->merge(
-                User::query()
-                    ->where('permission', '!=', UserPermission::Banned)
-                    ->pluck('id')
-            )
-            ->push($currentUser->id)
-            ->unique()
-            ->filter()
+        $receivers = new Collection;
+
+        foreach ($hotel->workers as $worker) {
+            if ($this->hotelAccess->userCanAccess($worker, $hotel, HotelWorkerAccess::Chat)) {
+                $receivers->push($worker);
+            }
+        }
+
+        return $receivers
+            ->push($currentUser)
+            ->unique('id')
+            ->filter(fn (User $user) => ! $user->isBanned())
+            ->sortBy('name')
             ->values();
-
-        return User::query()
-            ->whereIn('id', $receiverIds)
-            ->orderBy('name')
-            ->get();
     }
 
     public function defaultReceiverId(Collection $receivers, User $currentUser): int

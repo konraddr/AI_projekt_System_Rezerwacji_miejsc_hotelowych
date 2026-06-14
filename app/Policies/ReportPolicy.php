@@ -36,6 +36,6 @@ class ReportPolicy
 
     public function updateStatus(User $user, Report $report): bool
     {
-        return app(ReportRecipientService::class)->userCanHandleReport($user, $report);
+        return $this->moderate($user, $report);
     }
 }

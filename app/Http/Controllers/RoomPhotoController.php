@@ -9,6 +9,7 @@ use App\Models\Photo;
 use App\Models\Room;
 use App\Services\PhotoUploadService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class RoomPhotoController extends Controller
@@ -33,17 +34,23 @@ class RoomPhotoController extends Controller
         $this->authorize('create', [Photo::class, $hotel]);
 
         $validated = $request->validated();
-        $nextOrder = $room->photos()->max('order');
+        $photoCount = $room->photos()->count();
 
         $order = isset($validated['order'])
             ? (int) $validated['order']
-            : (int) $nextOrder + 1;
+            : $photoCount + 1;
 
-        $this->photoUploadService->upload(
-            $request->file('photo'),
-            $room,
-            $order
-        );
+        DB::transaction(function () use ($request, $room, $order): void {
+            $room->photos()
+                ->where('order', '>=', $order)
+                ->increment('order');
+
+            $this->photoUploadService->upload(
+                $request->file('photo'),
+                $room,
+                $order
+            );
+        });
 
         return redirect()
             ->route('manage.rooms.photos.index', [$hotel, $room])
@@ -56,9 +63,26 @@ class RoomPhotoController extends Controller
         $this->ensurePhotoBelongsToRoom($room, $photo);
         $this->authorize('update', [$photo, $hotel]);
 
-        $photo->update([
-            'order' => (int) $request->validated('order'),
-        ]);
+        $oldOrder = $photo->order;
+        $newOrder = (int) $request->validated('order');
+
+        if ($oldOrder !== $newOrder) {
+            DB::transaction(function () use ($room, $photo, $oldOrder, $newOrder): void {
+                if ($newOrder > $oldOrder) {
+                    $room->photos()
+                        ->where('id', '!=', $photo->id)
+                        ->whereBetween('order', [$oldOrder + 1, $newOrder])
+                        ->decrement('order');
+                } elseif ($newOrder < $oldOrder) {
+                    $room->photos()
+                        ->where('id', '!=', $photo->id)
+                        ->whereBetween('order', [$newOrder, $oldOrder - 1])
+                        ->increment('order');
+                }
+
+                $photo->update(['order' => $newOrder]);
+            });
+        }
 
         return redirect()
             ->route('manage.rooms.photos.index', [$hotel, $room])

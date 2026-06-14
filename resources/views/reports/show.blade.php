@@ -6,7 +6,7 @@
     <div class="container py-2">
         <nav aria-label="breadcrumb" class="mb-3">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('manage.reports.index') }}">Zgłoszenia</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('notifications.index') }}">Powiadomienia</a></li>
                 <li class="breadcrumb-item active" aria-current="page">#{{ $report->id }}</li>
             </ol>
         </nav>
@@ -43,7 +43,7 @@
                         </dl>
                     </div>
                     <div class="card-footer bg-white d-flex flex-wrap justify-content-between align-items-center gap-3">
-                        <a href="{{ route('manage.reports.index') }}" class="btn btn-outline-secondary">Powrót do listy</a>
+                        <a href="{{ route('notifications.index') }}" class="btn btn-outline-secondary">Powrót do powiadomień</a>
 
                         @can('updateStatus', $report)
                             <form action="{{ route('manage.reports.update-status', $report) }}" method="POST"

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Photo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -28,11 +29,22 @@ class PhotoUploadService
 
     public function delete(Photo $photo): void
     {
-        if (Storage::disk($this->disk())->exists($photo->storagePath())) {
-            Storage::disk($this->disk())->delete($photo->storagePath());
-        }
+        $imageable = $photo->imageable;
+        $deletedOrder = $photo->order;
 
-        $photo->delete();
+        DB::transaction(function () use ($photo, $imageable, $deletedOrder): void {
+            if (Storage::disk($this->disk())->exists($photo->storagePath())) {
+                Storage::disk($this->disk())->delete($photo->storagePath());
+            }
+
+            $photo->delete();
+
+            if ($imageable !== null) {
+                $imageable->photos()
+                    ->where('order', '>', $deletedOrder)
+                    ->decrement('order');
+            }
+        });
     }
 
     public function storagePath(string $filename, string $fileType): string
