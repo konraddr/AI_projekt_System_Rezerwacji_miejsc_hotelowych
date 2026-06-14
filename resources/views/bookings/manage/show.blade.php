@@ -15,6 +15,8 @@
 
     <div class="row justify-content-center">
         <div class="col-lg-8">
+            @include('partials.alerts')
+
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
                     <h1 class="h4 fw-bold mb-0">Rezerwacja #{{ $booking->id }}</h1>
@@ -61,9 +63,19 @@
                         @include('partials.booking-room-amenities', ['room' => $booking->room, 'booking' => $booking])
                     @endif
 
-                    <a href="{{ route('manage.hotels.bookings.index', $hotel) }}" class="btn btn-outline-secondary">
-                        Powrót do listy
-                    </a>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ route('manage.hotels.bookings.index', $hotel) }}" class="btn btn-outline-secondary">
+                            Powrót do listy
+                        </a>
+                        @if ($booking->canCancel())
+                            <form action="{{ route('manage.hotels.bookings.cancel', [$hotel, $booking]) }}"
+                                  method="POST" class="d-inline"
+                                  onsubmit="return confirm('Czy na pewno chcesz anulować tę rezerwację? Klient otrzyma powiadomienie.');">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-danger">Anuluj rezerwację</button>
+                            </form>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

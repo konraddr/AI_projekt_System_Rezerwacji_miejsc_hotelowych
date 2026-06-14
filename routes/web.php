@@ -74,6 +74,7 @@ Route::middleware('auth')->prefix('manage')->name('manage.')->group(function () 
 
         Route::get('/hotels/{hotel}/bookings', [HotelBookingController::class, 'index'])->name('hotels.bookings.index');
         Route::get('/hotels/{hotel}/bookings/{booking}', [HotelBookingController::class, 'show'])->name('hotels.bookings.show');
+        Route::post('/hotels/{hotel}/bookings/{booking}/cancel', [HotelBookingController::class, 'cancel'])->name('hotels.bookings.cancel');
 
         Route::get('/hotels/{hotel}/workers', [HotelWorkerController::class, 'index'])->name('hotels.workers.index');
         Route::post('/hotels/{hotel}/workers', [HotelWorkerController::class, 'store'])->name('hotels.workers.store');
