@@ -22,7 +22,7 @@ class PenalizeUnpaidBookings extends Command
             return self::SUCCESS;
         }
 
-        $this->info("Ukaroń {$penalizedCount} przeterminowanych rezerwacji (limit: {$graceHours} h).");
+        $this->info("Ukarano {$penalizedCount} przeterminowanych rezerwacji (limit: {$graceHours} h).");
 
         return self::SUCCESS;
     }
