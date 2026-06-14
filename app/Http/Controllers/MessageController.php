@@ -27,7 +27,11 @@ class MessageController extends Controller
         return view('messages.chat', [
             'hotel' => $hotel,
             'receivers' => $receivers,
-            'defaultReceiverId' => $this->chatRecipientService->defaultReceiverId($receivers, auth()->user()),
+            'defaultReceiverId' => $this->chatRecipientService->defaultReceiverId(
+                $hotel,
+                $receivers,
+                auth()->user()
+            ),
         ]);
     }
 
