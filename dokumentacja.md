@@ -11,14 +11,16 @@
 
 ---
 
-## 1. Autorzy
+## 1. Opis systemu
 
-- Konrad Dryło  
-- Maciej Bigos
-- Daniel Kudła
+HotelBook to aplikacja webowa  umożliwiająca:
+
+- **Klientom** — przeglądanie katalogu hoteli, filtrowanie po terminie i liczbie gości, rezerwację pokoi z opcjonalnymi płatnymi udogodnieniami, opłatę (symulacja), opinie po pobycie, czat z hotelem.
+- **Właścicielom** — zarządzanie hotelami, pokojami, cenami udogodnień, pracownikami, podgląd rezerwacji i anulowanie.
+- **Pracownikom** — ograniczony dostęp do przypisanego hotelu (pokoje, rezerwacje, zdjęcia, czat — wg uprawnień).
+- **Administratorom** — moderacja użytkowników, hoteli, opinii i zgłoszeń; słownik udogodnień.
 
 ---
-
 ## 2. Technologie
 
 ### Backend
@@ -42,21 +44,17 @@
 ### Infrastruktura
 - Docker Compose (Laravel Sail)
 - Serwis `init` — automatyczny `composer install`, `migrate --seed`, `storage:link`
-- Serwis `scheduler` — `php artisan schedule:work` 
+- Serwis `scheduler` — `php artisan schedule:work`
 
 ---
 
-## 3. Opis systemu
+## 3. Autorzy
 
-HotelBook to aplikacja webowa  umożliwiająca:
-
-- **Klientom** — przeglądanie katalogu hoteli, filtrowanie po terminie i liczbie gości, rezerwację pokoi z opcjonalnymi płatnymi udogodnieniami, opłatę (symulacja), opinie po pobycie, czat z hotelem.
-- **Właścicielom** — zarządzanie hotelami, pokojami, cenami udogodnień, pracownikami, podgląd rezerwacji i anulowanie.
-- **Pracownikom** — ograniczony dostęp do przypisanego hotelu (pokoje, rezerwacje, zdjęcia, czat — wg uprawnień).
-- **Administratorom** — moderacja użytkowników, hoteli, opinii i zgłoszeń; słownik udogodnień.
+- Konrad Dryło  
+- Maciej Bigos
+- Daniel Kudła
 
 ---
-
 ## 4. Zakres prac członków zespołu
 
 ### Konrad Dryło
@@ -162,20 +160,21 @@ Hasło wszystkich kont testowych: **`password`**
 ### Scenariusz A — Klient rezerwuje pokój
 
 1. Wejdź na http://localhost/hotels (konto: `client@demo.pl`).
-2. Ustaw przyjazd, wyjazd, liczbę gości -> **Filtruj**.
-3. Wybierz hotel -> zobacz wolne pokoje w terminie.
-4. Kliknij **Rezerwuj** -> wybierz daty i opcjonalne płatne udogodnienia (checkboxy).
-5. Potwierdź rezerwację -> **Opłać** (symulacja) na stronie szczegółów.
+   ![zdj](./zdjecia_dokumentacja/1.png)
+2. Ustaw przyjazd, wyjazd, liczbę gości -> **Filtruj**.![zdj](./zdjecia_dokumentacja/1.png)
+3. Wybierz hotel -> zobacz wolne pokoje w terminie.![zdj](./zdjecia_dokumentacja/2.png)
+4. Kliknij **Rezerwuj** -> wybierz daty i opcjonalne płatne udogodnienia (checkboxy).![zdj](./zdjecia_dokumentacja/3.png)
+5. Potwierdź rezerwację -> **Opłać** (symulacja) na stronie szczegółów.![zdj](./zdjecia_dokumentacja/4.png)
 6. Po zakończonym pobycie - dodaj opinię na stronie hotelu.
 
 ### Scenariusz B — Właściciel zarządza obiektem
 
-1. Zaloguj się jako `owner@demo.pl`.
-2. Panel: **Panel hoteli** -> `/manage/hotels`.
-3. Dodaj/edytuj hotel (mapa Leaflet, udogodnienia z ceną).
-4. Dodaj pokój - ceny udogodnień dziedziczą się z hotelu.
-5. Przejrzyj rezerwacje → ewentualnie anuluj rezerwację.
-6. Zarządzaj pracownikami (`worker@demo.pl`) i ich uprawnieniami.
+1. Zaloguj się jako `owner@demo.pl`.![zdj](./zdjecia_dokumentacja/Zalogujsiejakoowner.png)
+2. Panel: **Panel hoteli** -> `/manage/hotels`.![zdj](./zdjecia_dokumentacja/PanelHoteli.png)
+3. Dodaj/edytuj hotel (mapa Leaflet, udogodnienia z ceną).![zdj](./zdjecia_dokumentacja/EdytujHotel1.png)![zdj](./zdjecia_dokumentacja/EdytujHotel2.png)
+4. Dodaj pokój - ceny udogodnień dziedziczą się z hotelu.![zdj](./zdjecia_dokumentacja/DodajPokoj.png)
+5. Przejrzyj rezerwacje → ewentualnie anuluj rezerwację.![zdj](./zdjecia_dokumentacja/PrzejrzyjRezerwacje.png)
+6. Zarządzaj pracownikami (`worker@demo.pl`) i ich uprawnieniami.![zdj](./zdjecia_dokumentacja/ZarzadzajPracownikami.png)
 
 ### Scenariusz C — Administrator
 
@@ -240,9 +239,313 @@ Trasy z `routes/maciej.php` są ładowane w `AppServiceProvider` z prefiksem `/m
 
 ---
 
-## 9. Baza danych
 
-### 9.1. Opis tabel
+---
+
+## 9. Moduły z przykładami kodu
+
+### 9.1. Katalog hoteli — search, filter, sort, paginacja
+
+Plik: `app/Http/Controllers/HotelController.php`
+
+```php
+$hotels = $hotelsQuery
+    ->when($request->filled('q'), function ($query) use ($request) {
+        $search = '%'.$request->string('q').'%';
+        $query->where(function ($builder) use ($search) {
+            $builder->where('name', 'ilike', $search)
+                ->orWhere('city', 'ilike', $search)
+                ->orWhere('address', 'ilike', $search);
+        });
+    })
+    ->when($request->filled('city'), fn ($q) => $q->where('city', $request->string('city')))
+    ->when($request->sort === 'name_asc', fn ($q) => $q->orderBy('name'))
+    ->paginate(12)
+    ->withQueryString();
+```
+
+Parametry URL: `?q=kraków&city=Kraków&sort=name_asc&check_in=2026-06-01&check_out=2026-06-05&guests=2`
+
+### 9.2. Dostępność pokoi (filtr po datach)
+
+Plik: `app/Services/HotelAvailabilityService.php`
+
+Hotel ma wolny pokój, gdy liczba aktywnych rezerwacji nakładających się na termin jest mniejsza niż `rooms.quantity`:
+
+```php
+$roomsQuery->whereRaw(
+    '(select count(*) from bookings where bookings.room_id = rooms.id
+      and bookings.status = ? and bookings.check_in < ? and bookings.check_out > ?)
+     < rooms.quantity',
+    [BookingStatus::Active->value, $checkOut, $checkIn]
+);
+```
+
+### 9.3. Dziedziczenie cen udogodnień
+
+Plik: `app/Services/AmenityInheritanceService.php`
+
+```php
+RoomAmenity::create([
+    'room_id' => $room->id,
+    'hotel_amenity_id' => $hotelAmenity->id,
+    'price' => (float) $price,
+]);
+```
+
+### 9.4. Rezerwacja i zamrożenie cen
+
+Plik: `app/Services/BookingService.php`
+
+```php
+public function isRoomAvailable(Room $room, Carbon $checkIn, Carbon $checkOut): bool
+{
+    $overlappingCount = Booking::query()
+        ->where('room_id', $room->id)
+        ->where('status', BookingStatus::Active)
+        ->where('check_in', '<', $checkOut)
+        ->where('check_out', '>', $checkIn)
+        ->count();
+
+    return $overlappingCount < $room->quantity;
+}
+```
+
+### 9.5. Kara za brak wpłaty (cron)
+
+Plik: `app/Services/BookingPenaltyService.php`  
+Harmonogram: `routes/console.php` → `Schedule::command('bookings:penalize-unpaid')->hourly()`  
+Docker: serwis `scheduler` uruchamia `php artisan schedule:work`
+
+### 9.6. Anulowanie rezerwacji przez właściciela
+
+Plik: `app/Http/Controllers/HotelBookingController.php`
+
+```php
+public function cancel(Hotel $hotel, Booking $booking): RedirectResponse
+{
+    $this->hotelAccess->authorizeHotelCapability(auth()->user(), $hotel, HotelWorkerAccess::Bookings);
+    $this->bookingService->cancelBooking($booking);
+}
+```
+
+### 9.7. Zdjęcia — UUID 
+
+Plik: `app/Services/PhotoUploadService.php`
+
+```php
+$filename = (string) Str::uuid();
+Storage::disk($this->disk())->put($path, $file->get());
+
+return $imageable->photos()->create([
+    'filename' => $filename,
+    'file_type' => $fileType,
+    'order' => $order,
+]);
+```
+
+Model `Photo` używa relacji `morphTo('imageable')` — zdjęcie może należeć do `Hotel` lub `Room`.
+
+### 9.8. Czat — polling JavaScript
+
+Plik: `public/js/hotel-chat-polling.js`
+
+```javascript
+const pollInterval = parseInt(chatRoot.dataset.pollInterval || '60000', 10);
+```
+
+### 9.9. REST API
+
+Plik: `routes/api.php`
+
+```bash
+curl -X POST http://localhost/api/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"client@demo.pl","password":"password"}'
+
+curl http://localhost/api/notifications \
+  -H "Authorization: Bearer {TOKEN}"
+```
+
+Testy API: `tests/Feature/NotificationApiTest.php`
+
+### 9.10. Panel administratora
+
+Trasy w `routes/maciej.php` pod `middleware('permission:0')`:
+
+| Endpoint | Funkcja |
+|----------|---------|
+| `/manage/admin` | Dashboard |
+| `/manage/admin/users` | CRUD użytkowników |
+| `/manage/admin/hotels` | CRUD hoteli |
+| `/manage/admin/reviews` | Moderacja opinii (ban/unban) |
+| `/manage/admin/reports` | Obsługa zgłoszeń |
+
+### 9.11. Automatyczne seedowanie
+
+Plik: `compose.yaml` (serwis `init`):
+
+```bash
+php artisan migrate --seed --force --no-interaction
+```
+
+Plik: `database/seeders/DemoSeeder.php` — 15 hoteli, pokoje, rezerwacje, opinie, konta demo.
+
+---
+
+## 10. Mapa tras
+
+| URL | Opis |
+|-----|------|
+| `GET /hotels` | Katalog publiczny |
+| `GET /hotels/{hotel}` | Strona hotelu |
+| `GET /bookings/...` | Rezerwacje klienta |
+| `GET /profile` | Profil użytkownika |
+| `GET /manage/hotels` | Panel właściciela |
+| `GET /manage/admin` | Panel administratora |
+| `GET /manage/hotels/{hotel}/chat` | Czat |
+| `GET /manage/hotels/{hotel}/photos` | Zdjęcia hotelu |
+| `GET /manage/hotels/{hotel}/rooms/{room}/photos` | Zdjęcia pokoju |
+| `POST /api/login` | API — logowanie |
+
+---
+
+## 11. Konta testowe
+
+| Email | Hasło | Opis |
+|-------|-------|------|
+| `test@example.com` | `password` | Administrator systemu |
+| `owner@demo.pl` | `password` | Właściciel hoteli |
+| `worker@demo.pl` | `password` | Pracownik hotelu |
+| `client@demo.pl` | `password` | Klient z rezerwacjami |
+| `client2@demo.pl` | `password` | Klient z opiniami |
+| `client3@demo.pl` | `password` | Klient testowy |
+
+---
+
+## 12. Struktura katalogów
+
+```
+AI_projekt_System_Rezerwacji_miejsc_hotelowych/
+├── app/
+│   ├── Console/Commands/       # PenalizeUnpaidBookings
+│   ├── Enums/                  # UserPermission, BookingStatus, ...
+│   ├── Http/
+│   │   ├── Controllers/        # Kontrolery web + Api/
+│   │   ├── Middleware/         # Ban, permission, panel hoteli
+│   │   ├── Requests/           # Walidacja formularzy
+│   │   └── Resources/          # API resources
+│   ├── Models/                 # Eloquent
+│   ├── Notifications/          # Mail, push, database
+│   ├── Policies/               # Autoryzacja zasobów
+│   ├── Providers/              # AppServiceProvider (trasy maciej.php)
+│   └── Services/               # Logika biznesowa
+├── bootstrap/app.php
+├── compose.yaml                # Docker: init, laravel.test, scheduler, pgsql, pgadmin
+├── config/
+├── database/
+│   ├── migrations/             # Schemat PostgreSQL (23 migracje)
+│   └── seeders/                # DemoSeeder, AmenitySeeder, ...
+├── docker/                     # Obrazy Sail (PHP 8.5)
+├── public/
+│   ├── css/hotel-map.css
+│   ├── js/                     # hotel-map-form.js, hotel-map-show.js, hotel-chat-polling.js
+│   └── build/                  # Vite assets
+├── resources/
+│   ├── sass/
+│   └── views/                  # Blade: hotels, bookings, admin, layouts, ...
+├── routes/
+│   ├── web.php                 # Główne trasy
+│   ├── maciej.php              # Zdjęcia, opinie, czat, admin
+│   ├── api.php                 # REST API (Sanctum)
+│   └── console.php             # Scheduler
+└── tests/
+    └── Feature/                # NotificationApiTest, ChatRecipientTest
+```
+
+---
+
+## 13. Testy automatyczne
+
+| Plik | Zakres |
+|------|--------|
+| `tests/Feature/NotificationApiTest.php` | API powiadomień (Sanctum) |
+| `tests/Feature/ChatRecipientTest.php` | Odbiorcy czatu |
+
+Uruchomienie:
+
+```bash
+docker compose exec laravel.test php artisan test
+```
+
+---
+
+## 14. Kierunki rozwoju
+
+- Prawdziwa bramka płatności (Stripe, Przelewy24) zamiast symulacji.
+- Rozszerzenie REST API — hotele, pokoje, rezerwacje (obecnie API obejmuje auth + powiadomienia).
+- Kalendarz dostępności w panelu właściciela.
+- Powiadomienia dla właściciela o nowych rezerwacjach.
+- Eksport rezerwacji do CSV/PDF.
+- Wyszukiwanie geograficzne (promień od współrzędnych na mapie).
+- Weryfikacja e-mail przy rejestracji (`MustVerifyEmail`).
+
+---
+
+## 15. Dodawanie zdjęć — instrukcja krok po kroku
+
+### Wymagania wstępne
+
+1. Uruchomiony Docker: `docker compose up -d`
+2. Zalogowany użytkownik z uprawnieniem **photos** (właściciel, administrator lub pracownik z zaznaczonym uprawnieniem „zdjęcia”)
+3. Istniejący hotel (i opcjonalnie pokój)
+
+### Zdjęcia hotelu (przez panel)
+
+1. Zaloguj się np. jako `owner@demo.pl` / `password`.
+2. Wejdź w **Panel hoteli**: http://localhost/manage/hotels
+3. Przy wybranym hotelu kliknij przycisk **Zdjęcia**.
+4. Na stronie `/manage/hotels/{id}/photos`:
+   - wybierz plik **JPG** lub **PNG** (max **5 MB**),
+   - opcjonalnie ustaw **kolejność** (1 = pierwsze na liście),
+   - kliknij **Prześlij zdjęcie**.
+5. Zdjęcia pojawią się w galerii na tej stronie oraz na publicznej stronie hotelu (`/hotels/{id}`).
+
+### Zdjęcia pokoju
+
+1. Z panelu hotelu wejdź w **Pokoje** → `/manage/hotels/{id}/rooms`.
+2. Przy pokoju kliknij **Zdjęcia**.
+3. Na stronie `/manage/hotels/{id}/rooms/{room_id}/photos` prześlij plik tak samo jak dla hotelu.
+
+### Kto może dodawać zdjęcia?
+
+| Konto | Zdjęcia hotelu/pokoju |
+|-------|------------------------|
+| `owner@demo.pl` | Tak (właściciel) |
+| `test@example.com` | Tak (administrator) |
+| `worker@demo.pl` | **Nie domyślnie** — brak uprawnienia `photos` w seedzie; właściciel może nadać je w **Pracownicy** |
+
+### Gdzie trafiają pliki?
+
+- Dysk: `public` (`config/photos.php`)
+- Katalog: `storage/app/public/photos/`
+- Nazwa pliku: **UUID** (np. `a1b2c3d4-....jpg`), kolumna w bazie: `filename` + `file_type`
+- Relacja polimorficzna: rekord w tabeli `photos` powiązany z `Hotel` lub `Room`
+
+
+
+### Ograniczenia techniczne
+
+| Parametr | Wartość |
+|----------|---------|
+| Dozwolone formaty | JPG, JPEG, PNG |
+| Maks. rozmiar | 5120 KB (5 MB) |
+| Konfiguracja | `config/photos.php` |
+
+---
+## 16 Baza danych
+
+### 16.1. Opis tabel
 
 **Rdzeń noclegowy**
 
@@ -269,7 +572,7 @@ Trasy z `routes/maciej.php` są ładowane w `AppServiceProvider` z prefiksem `/m
 - `extra_amenities` — `booking_id`, `hotel_amenity_id`, `price` (zamrożona)
 - `notifications`, `push_subscriptions`, `personal_access_tokens` (API)
 
-### 9.2. Diagram ERD (dbdiagram.io)
+### 16.2. Diagram ERD (dbdiagram.io)
 <img width="1062" height="832" alt="image" src="https://github.com/user-attachments/assets/b7d9a691-88e3-405f-9889-619be370bbbb" />
 
 ```dbml
@@ -435,306 +738,3 @@ Table workers {
 }
 ```
 
----
-
-## 10. Moduły z przykładami kodu
-
-### 10.1. Katalog hoteli — search, filter, sort, paginacja
-
-Plik: `app/Http/Controllers/HotelController.php`
-
-```php
-$hotels = $hotelsQuery
-    ->when($request->filled('q'), function ($query) use ($request) {
-        $search = '%'.$request->string('q').'%';
-        $query->where(function ($builder) use ($search) {
-            $builder->where('name', 'ilike', $search)
-                ->orWhere('city', 'ilike', $search)
-                ->orWhere('address', 'ilike', $search);
-        });
-    })
-    ->when($request->filled('city'), fn ($q) => $q->where('city', $request->string('city')))
-    ->when($request->sort === 'name_asc', fn ($q) => $q->orderBy('name'))
-    ->paginate(12)
-    ->withQueryString();
-```
-
-Parametry URL: `?q=kraków&city=Kraków&sort=name_asc&check_in=2026-06-01&check_out=2026-06-05&guests=2`
-
-### 10.2. Dostępność pokoi (filtr po datach)
-
-Plik: `app/Services/HotelAvailabilityService.php`
-
-Hotel ma wolny pokój, gdy liczba aktywnych rezerwacji nakładających się na termin jest mniejsza niż `rooms.quantity`:
-
-```php
-$roomsQuery->whereRaw(
-    '(select count(*) from bookings where bookings.room_id = rooms.id
-      and bookings.status = ? and bookings.check_in < ? and bookings.check_out > ?)
-     < rooms.quantity',
-    [BookingStatus::Active->value, $checkOut, $checkIn]
-);
-```
-
-### 10.3. Dziedziczenie cen udogodnień
-
-Plik: `app/Services/AmenityInheritanceService.php`
-
-```php
-RoomAmenity::create([
-    'room_id' => $room->id,
-    'hotel_amenity_id' => $hotelAmenity->id,
-    'price' => (float) $price,
-]);
-```
-
-### 10.4. Rezerwacja i zamrożenie cen
-
-Plik: `app/Services/BookingService.php`
-
-```php
-public function isRoomAvailable(Room $room, Carbon $checkIn, Carbon $checkOut): bool
-{
-    $overlappingCount = Booking::query()
-        ->where('room_id', $room->id)
-        ->where('status', BookingStatus::Active)
-        ->where('check_in', '<', $checkOut)
-        ->where('check_out', '>', $checkIn)
-        ->count();
-
-    return $overlappingCount < $room->quantity;
-}
-```
-
-### 10.5. Kara za brak wpłaty (cron)
-
-Plik: `app/Services/BookingPenaltyService.php`  
-Harmonogram: `routes/console.php` → `Schedule::command('bookings:penalize-unpaid')->hourly()`  
-Docker: serwis `scheduler` uruchamia `php artisan schedule:work`
-
-### 10.6. Anulowanie rezerwacji przez właściciela
-
-Plik: `app/Http/Controllers/HotelBookingController.php`
-
-```php
-public function cancel(Hotel $hotel, Booking $booking): RedirectResponse
-{
-    $this->hotelAccess->authorizeHotelCapability(auth()->user(), $hotel, HotelWorkerAccess::Bookings);
-    $this->bookingService->cancelBooking($booking);
-}
-```
-
-### 10.7. Zdjęcia — UUID 
-
-Plik: `app/Services/PhotoUploadService.php`
-
-```php
-$filename = (string) Str::uuid();
-Storage::disk($this->disk())->put($path, $file->get());
-
-return $imageable->photos()->create([
-    'filename' => $filename,
-    'file_type' => $fileType,
-    'order' => $order,
-]);
-```
-
-Model `Photo` używa relacji `morphTo('imageable')` — zdjęcie może należeć do `Hotel` lub `Room`.
-
-### 10.8. Czat — polling JavaScript
-
-Plik: `public/js/hotel-chat-polling.js`
-
-```javascript
-const pollInterval = parseInt(chatRoot.dataset.pollInterval || '60000', 10);
-```
-
-### 10.9. REST API
-
-Plik: `routes/api.php`
-
-```bash
-curl -X POST http://localhost/api/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"client@demo.pl","password":"password"}'
-
-curl http://localhost/api/notifications \
-  -H "Authorization: Bearer {TOKEN}"
-```
-
-Testy API: `tests/Feature/NotificationApiTest.php`
-
-### 10.10. Panel administratora
-
-Trasy w `routes/maciej.php` pod `middleware('permission:0')`:
-
-| Endpoint | Funkcja |
-|----------|---------|
-| `/manage/admin` | Dashboard |
-| `/manage/admin/users` | CRUD użytkowników |
-| `/manage/admin/hotels` | CRUD hoteli |
-| `/manage/admin/reviews` | Moderacja opinii (ban/unban) |
-| `/manage/admin/reports` | Obsługa zgłoszeń |
-
-### 10.11. Automatyczne seedowanie
-
-Plik: `compose.yaml` (serwis `init`):
-
-```bash
-php artisan migrate --seed --force --no-interaction
-```
-
-Plik: `database/seeders/DemoSeeder.php` — 15 hoteli, pokoje, rezerwacje, opinie, konta demo.
-
----
-
-## 11. Mapa tras
-
-| URL | Opis |
-|-----|------|
-| `GET /hotels` | Katalog publiczny |
-| `GET /hotels/{hotel}` | Strona hotelu |
-| `GET /bookings/...` | Rezerwacje klienta |
-| `GET /profile` | Profil użytkownika |
-| `GET /manage/hotels` | Panel właściciela |
-| `GET /manage/admin` | Panel administratora |
-| `GET /manage/hotels/{hotel}/chat` | Czat |
-| `GET /manage/hotels/{hotel}/photos` | Zdjęcia hotelu |
-| `GET /manage/hotels/{hotel}/rooms/{room}/photos` | Zdjęcia pokoju |
-| `POST /api/login` | API — logowanie |
-
----
-
-## 12. Konta testowe
-
-| Email | Hasło | Opis |
-|-------|-------|------|
-| `test@example.com` | `password` | Administrator systemu |
-| `owner@demo.pl` | `password` | Właściciel hoteli |
-| `worker@demo.pl` | `password` | Pracownik hotelu |
-| `client@demo.pl` | `password` | Klient z rezerwacjami |
-| `client2@demo.pl` | `password` | Klient z opiniami |
-| `client3@demo.pl` | `password` | Klient testowy |
-
----
-
-## 13. Struktura katalogów
-
-```
-AI_projekt_System_Rezerwacji_miejsc_hotelowych/
-├── app/
-│   ├── Console/Commands/       # PenalizeUnpaidBookings
-│   ├── Enums/                  # UserPermission, BookingStatus, ...
-│   ├── Http/
-│   │   ├── Controllers/        # Kontrolery web + Api/
-│   │   ├── Middleware/         # Ban, permission, panel hoteli
-│   │   ├── Requests/           # Walidacja formularzy
-│   │   └── Resources/          # API resources
-│   ├── Models/                 # Eloquent
-│   ├── Notifications/          # Mail, push, database
-│   ├── Policies/               # Autoryzacja zasobów
-│   ├── Providers/              # AppServiceProvider (trasy maciej.php)
-│   └── Services/               # Logika biznesowa
-├── bootstrap/app.php
-├── compose.yaml                # Docker: init, laravel.test, scheduler, pgsql, pgadmin
-├── config/
-├── database/
-│   ├── migrations/             # Schemat PostgreSQL (23 migracje)
-│   └── seeders/                # DemoSeeder, AmenitySeeder, ...
-├── docker/                     # Obrazy Sail (PHP 8.5)
-├── public/
-│   ├── css/hotel-map.css
-│   ├── js/                     # hotel-map-form.js, hotel-map-show.js, hotel-chat-polling.js
-│   └── build/                  # Vite assets
-├── resources/
-│   ├── sass/
-│   └── views/                  # Blade: hotels, bookings, admin, layouts, ...
-├── routes/
-│   ├── web.php                 # Główne trasy
-│   ├── maciej.php              # Zdjęcia, opinie, czat, admin
-│   ├── api.php                 # REST API (Sanctum)
-│   └── console.php             # Scheduler
-└── tests/
-    └── Feature/                # NotificationApiTest, ChatRecipientTest
-```
-
----
-
-## 14. Testy automatyczne
-
-| Plik | Zakres |
-|------|--------|
-| `tests/Feature/NotificationApiTest.php` | API powiadomień (Sanctum) |
-| `tests/Feature/ChatRecipientTest.php` | Odbiorcy czatu |
-
-Uruchomienie:
-
-```bash
-docker compose exec laravel.test php artisan test
-```
-
----
-
-## 15. Kierunki rozwoju
-
-- Prawdziwa bramka płatności (Stripe, Przelewy24) zamiast symulacji.
-- Rozszerzenie REST API — hotele, pokoje, rezerwacje (obecnie API obejmuje auth + powiadomienia).
-- Kalendarz dostępności w panelu właściciela.
-- Powiadomienia dla właściciela o nowych rezerwacjach.
-- Eksport rezerwacji do CSV/PDF.
-- Wyszukiwanie geograficzne (promień od współrzędnych na mapie).
-- Weryfikacja e-mail przy rejestracji (`MustVerifyEmail`).
-
----
-
-## 16. Dodawanie zdjęć — instrukcja krok po kroku
-
-### Wymagania wstępne
-
-1. Uruchomiony Docker: `docker compose up -d`
-2. Zalogowany użytkownik z uprawnieniem **photos** (właściciel, administrator lub pracownik z zaznaczonym uprawnieniem „zdjęcia”)
-3. Istniejący hotel (i opcjonalnie pokój)
-
-### Zdjęcia hotelu (przez panel)
-
-1. Zaloguj się np. jako `owner@demo.pl` / `password`.
-2. Wejdź w **Panel hoteli**: http://localhost/manage/hotels
-3. Przy wybranym hotelu kliknij przycisk **Zdjęcia**.
-4. Na stronie `/manage/hotels/{id}/photos`:
-   - wybierz plik **JPG** lub **PNG** (max **5 MB**),
-   - opcjonalnie ustaw **kolejność** (1 = pierwsze na liście),
-   - kliknij **Prześlij zdjęcie**.
-5. Zdjęcia pojawią się w galerii na tej stronie oraz na publicznej stronie hotelu (`/hotels/{id}`).
-
-### Zdjęcia pokoju
-
-1. Z panelu hotelu wejdź w **Pokoje** → `/manage/hotels/{id}/rooms`.
-2. Przy pokoju kliknij **Zdjęcia**.
-3. Na stronie `/manage/hotels/{id}/rooms/{room_id}/photos` prześlij plik tak samo jak dla hotelu.
-
-### Kto może dodawać zdjęcia?
-
-| Konto | Zdjęcia hotelu/pokoju |
-|-------|------------------------|
-| `owner@demo.pl` | Tak (właściciel) |
-| `test@example.com` | Tak (administrator) |
-| `worker@demo.pl` | **Nie domyślnie** — brak uprawnienia `photos` w seedzie; właściciel może nadać je w **Pracownicy** |
-
-### Gdzie trafiają pliki?
-
-- Dysk: `public` (`config/photos.php`)
-- Katalog: `storage/app/public/photos/`
-- Nazwa pliku: **UUID** (np. `a1b2c3d4-....jpg`), kolumna w bazie: `filename` + `file_type`
-- Relacja polimorficzna: rekord w tabeli `photos` powiązany z `Hotel` lub `Room`
-
-
-
-### Ograniczenia techniczne
-
-| Parametr | Wartość |
-|----------|---------|
-| Dozwolone formaty | JPG, JPEG, PNG |
-| Maks. rozmiar | 5120 KB (5 MB) |
-| Konfiguracja | `config/photos.php` |
-
----
