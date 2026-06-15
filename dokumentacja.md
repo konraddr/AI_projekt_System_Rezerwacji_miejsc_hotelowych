@@ -270,6 +270,7 @@ Trasy z `routes/maciej.php` są ładowane w `AppServiceProvider` z prefiksem `/m
 - `notifications`, `push_subscriptions`, `personal_access_tokens` (API)
 
 ### 9.2. Diagram ERD (dbdiagram.io)
+<img width="1062" height="832" alt="image" src="https://github.com/user-attachments/assets/b7d9a691-88e3-405f-9889-619be370bbbb" />
 
 ```dbml
 Enum report_status {
