@@ -1,9 +1,14 @@
 
 
 
-
+# Pełna dokumentacja w dokumentacja.md link https://github.com/konraddr/AI_projekt_System_Rezerwacji_miejsc_hotelowych/blob/main/dokumentacja.md
+# 
+#
+#
+#
 
 AI_projekt_System_Rezerwacji_miejsc_hotelowych
+
 ## ️ Jak uruchomić projekt
 ## 1. Co musisz mieć włączone
 * Docker Desktop (uruchomiony i działający w tle).
